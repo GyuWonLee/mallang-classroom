@@ -1,0 +1,33 @@
+# 환경 변수 / 비밀 값
+.env
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Claude
+.claude/
+
+# Personal archive: credentials and generated/private data
+.env*
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.dump
+*.bak
+*.log
+**/*dump*.sql
+node_modules/
+dist/
+build/
+.gradle/
+coverage/
+uploads/

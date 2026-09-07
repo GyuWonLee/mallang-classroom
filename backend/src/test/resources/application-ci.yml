@@ -1,0 +1,26 @@
+# CI 전용 프로필 — 실제 Postgres 에 마이그레이션을 걸고 엔티티와 대조한다.
+#
+# 기본 테스트 프로필(application.yml)은 H2 + flyway off + ddl-auto none 이라
+# "빈 배선"만 검증한다. 그 결과 마이그레이션 SQL 오류나 엔티티↔스키마 불일치가
+# 빌드에서 안 걸리고 배포에서만 터졌다 (2026-07-28 Flyway V6 중복 사고).
+#
+# 이 프로필은 SchemaMigrationCiTest 하나만 쓴다. Jenkins 가 이미 넘겨주는
+# DB_HOST/REDIS_HOST 를 그대로 재사용하므로 파이프라인 수정은 필요 없다.
+spring:
+  datasource:
+    # 여기서만 env 를 읽는다 — 기본 테스트 프로필은 H2 를 하드코딩하고 있어 이 값이 안 먹는다
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:mallang}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER:mallang}
+    password: ${DB_PASSWORD:mallang}
+  flyway:
+    # 운영과 같은 순서로 V1..Vn 을 실제로 적용한다 — SQL 오류는 여기서 잡힌다
+    enabled: true
+  jpa:
+    hibernate:
+      # 마이그레이션이 만든 스키마와 엔티티 매핑을 대조한다 — 컬럼 누락은 여기서 잡힌다
+      ddl-auto: validate
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}

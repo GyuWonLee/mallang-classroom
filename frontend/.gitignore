@@ -1,0 +1,33 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 로컬 참고 자료 (커밋 대상 아님)
+CLAUDE.md
+public/__ref
+ref3
+
+# pdf.js 가 런타임에 받아 가는 데이터(cmaps·standard_fonts) — 빌드 때 node_modules 에서 복사한다.
+# 185개 파일 2.3MB 라 커밋하지 않는다 (scripts/copy-pdfjs-assets.mjs 주석 참고).
+public/pdfjs/

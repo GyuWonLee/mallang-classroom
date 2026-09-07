@@ -1,0 +1,45 @@
+HELP.md
+.gradle
+build/
+
+### Secrets (절대 커밋 금지 — 키는 env 또는 배포서버 mallang.env 에만) ###
+.env
+*.env
+application-local.yml
+application-local.yaml
+application-secret*.yml
+application-secret*.yaml
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/

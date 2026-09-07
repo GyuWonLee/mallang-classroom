@@ -1,0 +1,165 @@
+erDiagram
+    USER {
+        bigint id PK
+        varchar username UK "선생님=이메일 / 학생=dodam01"
+        varchar password "BCrypt"
+        varchar name
+        varchar role "TEACHER | STUDENT"
+        varchar school
+        smallint grade "학생만 (CHECK)"
+        timestamp created_at
+        timestamp deleted_at "soft delete"
+    }
+
+    CLASSROOM {
+        bigint id PK
+        varchar name
+        varchar alias UK "학생 아이디 생성용"
+        timestamp created_at
+        timestamp deleted_at "soft delete"
+    }
+
+    CLASSROOM_GRADE {
+        bigint classroom_id PK,FK
+        smallint grade PK "1-6 / 학급당 1-2개"
+    }
+
+    CLASSROOM_MEMBER {
+        bigint id PK
+        bigint classroom_id FK
+        bigint user_id FK
+        varchar role "OWNER | MAINTAINER | STUDENT"
+        timestamp joined_at
+        timestamp deleted_at "soft delete"
+    }
+
+    TEAM {
+        bigint id PK
+        bigint classroom_id FK
+        varchar name "n학년"
+        smallint grade "자동 배정 기준"
+        timestamp created_at
+        timestamp deleted_at "soft delete"
+    }
+
+    TEAM_MEMBER {
+        bigint id PK
+        bigint team_id FK
+        bigint classroom_id FK "학급당 1팀 강제용"
+        bigint user_id FK
+        timestamp joined_at
+    }
+
+    INVITE {
+        bigint id PK
+        bigint classroom_id FK
+        varchar code UK "혼동문자 제외"
+        varchar type "TEACHER | STUDENT"
+        bigint created_by FK
+        timestamp expires_at
+        int max_uses
+        int used_count
+        timestamp revoked_at
+        timestamp created_at
+    }
+
+    LIVE_SESSION {
+        bigint id PK
+        bigint classroom_id FK
+        bigint started_by FK "미디어 제어 권한 기준"
+        timestamp started_at
+        timestamp ended_at "NULL = 진행중"
+        jsonb board_snapshot "획만 박제"
+    }
+
+    SESSION_PARTICIPANT {
+        bigint id PK
+        bigint session_id FK
+        bigint user_id FK
+        timestamp joined_at
+        timestamp left_at "재입장 = 새 행"
+    }
+
+    CHAT_MESSAGE {
+        bigint id PK
+        bigint session_id FK
+        bigint sender_id FK
+        bigint reply_to_id FK "자기 참조"
+        text content
+        timestamp created_at
+    }
+
+    ASSIGNMENT {
+        bigint id PK
+        bigint classroom_id FK
+        bigint created_by FK
+        varchar title
+        varchar subject "KOREAN | HANJA"
+        varchar type "DICTATION 외 4종"
+        varchar source "MANUAL | AI_GENERATED"
+        jsonb content "문제 전문 - fetch join 금지"
+        jsonb source_material_ids
+        timestamp due_at
+        timestamp published_at "NULL = 초안"
+        timestamp created_at
+        timestamp deleted_at "soft delete"
+    }
+
+    SUBMISSION {
+        bigint id PK
+        bigint assignment_id FK
+        bigint student_id FK
+        jsonb answers
+        smallint score "미채점 유형은 NULL"
+        jsonb results "모든 통계의 원천"
+        jsonb ai_analysis "LLM 해석 - 숫자 금지"
+        int attempt_no "재제출 = 새 행"
+        timestamp submitted_at
+    }
+
+    UPLOADED_FILE {
+        uuid id PK "이 테이블만 UUID"
+        bigint uploader_id FK
+        varchar purpose "TTS_AUDIO 외 3종"
+        varchar original_name
+        varchar storage_key UK
+        varchar content_type
+        bigint size_bytes
+        timestamp created_at
+    }
+
+    MATERIAL {
+        bigint id PK
+        bigint classroom_id FK
+        uuid file_id FK,UK "1:1"
+        varchar title
+        text extracted_text
+        varchar extraction_source "TEXT_LAYER | LLM"
+        varchar status "PROCESSING PREVIEW READY FAILED"
+        varchar failure_reason
+        timestamp created_at
+        timestamp deleted_at "soft delete"
+    }
+
+    USER            ||--o{ CLASSROOM_MEMBER    : "소속"
+    CLASSROOM       ||--o{ CLASSROOM_MEMBER    : ""
+    CLASSROOM       ||--o{ CLASSROOM_GRADE     : "담당 학년 1-2"
+    CLASSROOM       ||--o{ TEAM                : "학년당 1팀"
+    TEAM            ||--o{ TEAM_MEMBER         : ""
+    USER            ||--o{ TEAM_MEMBER         : "학생 전용"
+    CLASSROOM       ||--o{ INVITE              : ""
+    USER            ||--o{ INVITE              : "created_by"
+    CLASSROOM       ||--o{ LIVE_SESSION        : ""
+    USER            ||--o{ LIVE_SESSION        : "started_by"
+    LIVE_SESSION    ||--o{ SESSION_PARTICIPANT : "출석"
+    USER            ||--o{ SESSION_PARTICIPANT : ""
+    LIVE_SESSION    ||--o{ CHAT_MESSAGE        : ""
+    USER            ||--o{ CHAT_MESSAGE        : "sender"
+    CHAT_MESSAGE    ||--o| CHAT_MESSAGE        : "reply_to"
+    CLASSROOM       ||--o{ ASSIGNMENT          : ""
+    USER            ||--o{ ASSIGNMENT          : "created_by"
+    ASSIGNMENT      ||--o{ SUBMISSION          : ""
+    USER            ||--o{ SUBMISSION          : "student"
+    USER            ||--o{ UPLOADED_FILE       : "uploader"
+    CLASSROOM       ||--o{ MATERIAL            : ""
+    UPLOADED_FILE   ||--|| MATERIAL            : "원본 PDF"

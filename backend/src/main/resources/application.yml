@@ -1,0 +1,191 @@
+spring:
+  application:
+    name: mallang
+  profiles:
+    default: local
+  lifecycle:
+    # 이 시간 안에 안 끝나면 그때는 끊는다. 배포가 그만큼 늦어지므로 무한정 둘 수는 없다
+    timeout-per-shutdown-phase: 30s
+  servlet:
+    multipart:
+      # 기본 1MB 로는 오디오·PDF 업로드가 막힌다. 용도별 실제 한도는 FilePurpose 가 검사한다
+      # (Nginx client_max_body_size 도 함께 올려야 함 — 앞단에서 먼저 413 이 난다)
+      max-file-size: 20MB
+      max-request-size: 21MB
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:mallang}
+    username: ${DB_USER:mallang}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    # 스키마는 Flyway(db/migration/*.sql)가 관리 — Hibernate는 검증만 (전 프로필 공통)
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  mail:
+    # 비워 두면 JavaMailSender 빈이 만들어지지 않는다 — 기동은 되고 재설정 메일만 안 나간다.
+    # 제공자를 정한 뒤 .env 에 채우면 그때부터 발송된다 (SMTP_* 환경변수).
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          # 통지표 메일은 PDF(수백 KB)를 첨부해 보낸다. 읽기·쓰기 5초로는 첨부 전송이
+          # 끝나기 전에 끊겨, Gmail 은 이미 받아 배달했는데도(메일은 도착) 클라이언트가
+          # 250-OK 확인응답을 5초 안에 못 받아 예외 → 화면엔 "전송 실패"가 뜬다.
+          # 그래서 첨부 전송에 맞춰 읽기·쓰기를 넉넉히(30초) 둔다. graceful-shutdown 유예도 30초라 맞춤.
+          connectiontimeout: ${SMTP_CONNECTION_TIMEOUT:10000}
+          timeout: ${SMTP_READ_TIMEOUT:30000}
+          writetimeout: ${SMTP_WRITE_TIMEOUT:30000}
+
+jwt:
+  # 32바이트 이상 필수. 운영 환경에서는 반드시 환경변수로 주입할 것
+  secret: ${JWT_SECRET}
+  access-token-validity: PT30M
+  refresh-token-validity: P14D
+
+mallang:
+  app:
+    # 재설정 메일에 넣을 링크의 앞부분. 로컬에서는 Vite 개발 서버를 가리킨다.
+    base-url: ${APP_BASE_URL:http://localhost:5173}
+  password-reset:
+    # 링크 하나가 곧 계정 접근 권한이라 짧게 잡는다. 메일 확인에는 충분하다.
+    token-validity: ${PASSWORD_RESET_TOKEN_VALIDITY:PT30M}
+  material:
+    # 1단계(텍스트 레이어) 판정 — 페이지당 이 글자 수 미만이면 스캔본으로 보고 2단계로 넘긴다
+    min-chars-per-page: ${MATERIAL_MIN_CHARS_PER_PAGE:50}
+    vision:
+      # 2단계(멀티모달) — 키·base-url 은 ai.openai.* 를 그대로 쓴다. 여기는 비용 조절값
+      model: ${MATERIAL_VISION_MODEL:gpt-4o-mini}
+      # 페이지마다 한 번씩 부르므로 장수가 곧 비용이다
+      max-pages: ${MATERIAL_VISION_MAX_PAGES:30}
+      max-image-width: ${MATERIAL_VISION_MAX_IMAGE_WIDTH:1536}
+      render-dpi: ${MATERIAL_VISION_RENDER_DPI:150}
+      max-output-tokens: ${MATERIAL_VISION_MAX_OUTPUT_TOKENS:4096}
+  media:
+    # 업로드 파일 저장 루트 (팀 확정: EC2 로컬 디스크, S3 미사용).
+    # 컨테이너 경로 — 호스트의 같은 경로를 volume 으로 마운트해야 배포 시 유실되지 않는다 (Jenkinsfile)
+    root: ${MEDIA_ROOT:/var/lib/mallang-media}
+
+livekit:
+  public-url: ${LIVEKIT_PUBLIC_URL:ws://localhost:7880}
+  api-key: ${LIVEKIT_API_KEY:}
+  api-secret: ${LIVEKIT_API_SECRET:}
+  # 재접속용 이전 토큰의 권한 우회 가능 시간을 줄인다. 활성 연결은 만료돼도 끊기지 않는다.
+  token-validity: ${LIVEKIT_TOKEN_VALIDITY:PT5M}
+
+ai:
+  # provider=stub: LLM 호출 없이 로컬 샘플 초안 생성 (기본, 키 불필요)
+  # provider=anthropic: Claude 직접 호출 (ANTHROPIC_API_KEY, sk-ant-...)
+  # provider=openai: OpenAI 호환 게이트웨이 (SSAFY GMS 등, Bearer 토큰)
+  provider: ${AI_PROVIDER:stub}
+  anthropic:
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${ANTHROPIC_MODEL:claude-opus-5}
+    max-tokens: ${ANTHROPIC_MAX_TOKENS:16000}
+    # 커스텀 엔드포인트를 쓸 때만 지정 (비우면 api.anthropic.com)
+    base-url: ${ANTHROPIC_BASE_URL:}
+  openai:
+    api-key: ${AI_OPENAI_API_KEY:}
+    # SSAFY GMS의 OpenAI 중계 기본값 — 다르면 env로 덮어쓰기
+    base-url: ${AI_OPENAI_BASE_URL:https://gms.ssafy.io/gmsapi/api.openai.com}
+    chat-path: ${AI_OPENAI_CHAT_PATH:/v1/chat/completions}
+    # 요청 본문에는 max_tokens 가 아니라 **max_completion_tokens** 를 쓴다 —
+    # gpt-4o·4.1 은 둘 다 받지만 gpt-5 계열은 max_tokens 를 400 으로 거절한다.
+    #
+    # 모델을 gpt-5 계열로 올릴 때 주의: 추론 모델이라 출력 예산을 추론 토큰이 먼저 먹는다.
+    # 실측으로 예산 50 이면 추론이 50 을 다 쓰고 본문이 빈 문자열로 온다(2,000 이면 정상).
+    # 우리 호출부 중 리포트·과제 피드백(300)·말랑이 답변(500)·말랑이 요약(400)·검증(800)은
+    # 그 예산으로는 빈 응답이 되고, 전부 베스트에포트라 **템플릿으로 조용히 떨어진다.**
+    # 모델만 바꾸면 AI 기능이 죽은 줄도 모르게 되므로, 올릴 때는 각 호출부의 예산을 함께
+    # 올려야 한다. 말랑이 둘은 ai.tutor.* 로 빼 두어 env 로 조절할 수 있다.
+    model: ${AI_OPENAI_MODEL:gpt-4o}
+    # 문항을 한 번에 여러 개(최대 30) 만들고 각 문항에 인용문·보기까지 실린다. 4000 은 문항이
+    # 조금만 많아도 응답이 잘려(JSON 파싱 실패) '가끔 실패'로 나타났다. gpt-4o 는 완성 토큰을
+    # 16384 까지 내므로 넉넉히 8000 으로 올린다. 게이트웨이가 상한을 더 낮게 두면 env 로 조정.
+    max-tokens: ${AI_OPENAI_MAX_TOKENS:8000}
+  material:
+    # 프롬프트에 실을 학습자료 분량 — **모델 한계가 아니라 우리 예산**이다.
+    # 입력 컨텍스트는 gpt-4o 128k·claude 200k 토큰이라 한글 6만 자(대략 5만 토큰)도 넉넉히 들어간다.
+    #
+    # 예전 값(합계 20,000)은 자료를 여러 개 고르면 뒤엣것이 통째로 빠질 만큼 빡빡했다 —
+    # 자료 6개를 고른 요청에서 5개가 제외되고 생성이 거절됐다.
+    #
+    # 게이트웨이가 자체 상한으로 400 을 주면 배포 없이 이 값을 낮춘다.
+    max-chars-total: ${AI_MATERIAL_MAX_CHARS_TOTAL:60000}
+    max-chars-per-material: ${AI_MATERIAL_MAX_CHARS_PER:20000}
+  tutor:
+    # AI 말랑이(학생 챗봇)의 출력 토큰 예산.
+    #
+    # **모델을 바꾸면 여기가 곧바로 문제가 된다.** 특히 추론 모델(gpt-5 계열)은 출력 예산을
+    # 추론 토큰이 먼저 먹어, 500 으로는 본문이 빈 문자열로 온다 — 답이 안내 문구로 조용히
+    # 떨어져 기능이 죽은 줄도 모르게 된다. 배포 없이 env 로 올릴 수 있어야 해서 뺐다.
+    answer-max-tokens: ${AI_TUTOR_ANSWER_MAX_TOKENS:500}
+    # 요약이 잘리면 다음 답변의 문맥이 통째로 날아간다. 3문장 요약에 200 은 빠듯해 400 으로 둔다
+    summary-max-tokens: ${AI_TUTOR_SUMMARY_MAX_TOKENS:400}
+  # 생성 초안 보관 시간 (Redis genjob TTL). 명세: 24시간
+  job-ttl: ${AI_JOB_TTL:PT24H}
+
+tts:
+  # provider=stub: 무음 WAV (기본, 키 불필요) / provider=gms: SSAFY GMS(OpenAI 호환) 음성
+  # 저장 위치는 파일 도메인과 동일한 mallang.media.root 를 재사용한다
+  provider: ${TTS_PROVIDER:stub}
+  max-chars: ${TTS_MAX_CHARS:1000}
+  gms:
+    api-key: ${AI_OPENAI_API_KEY:}            # GMS 키 재사용
+    base-url: ${AI_OPENAI_BASE_URL:https://gms.ssafy.io/gmsapi/api.openai.com}
+    speech-path: ${TTS_GMS_SPEECH_PATH:/v1/audio/speech}
+    model: ${TTS_GMS_MODEL:gpt-4o-mini-tts}
+    voice: ${TTS_GMS_VOICE:alloy}
+    format: ${TTS_GMS_FORMAT:mp3}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # prometheus: 모니터링 스택이 컨테이너 네트워크 안에서 스크레이프한다.
+        # Nginx 는 /actuator 를 백엔드로 넘기지 않으므로 외부에서는 닿지 않는다.
+        include: health, info, prometheus
+
+server:
+  port: 8080
+  # Nginx(TLS 종료) 뒤에서 X-Forwarded-Proto/Host를 신뢰해 https 기준으로 URL 생성
+  forward-headers-strategy: framework
+  # 배포로 이 슬롯을 내릴 때 **진행 중인 요청을 끝내고** 죽는다.
+  #
+  # 블루-그린으로 트래픽을 새 슬롯에 넘긴 뒤에도, 넘기기 직전에 들어온 요청은 이쪽에서
+  # 아직 돌고 있다. 유예 없이 죽이면 그 요청이 통째로 잘린다 — 실제로 통지표 메일에서 났다.
+  # **Gmail 로는 이미 보냈는데 응답을 돌려주기 전에 죽어서**, 학부모는 메일을 받았는데
+  # 선생님 화면에는 "보내지 못했어요" 가 떴다(nginx 는 502 로 기록).
+  #
+  # 메일·TTS·PDF 추출처럼 외부를 기다리는 경로가 특히 위험하다. 기다리는 시간은
+  # spring.lifecycle.timeout-per-shutdown-phase 이고, Jenkinsfile 이 SIGTERM 을 보내고
+  # 그만큼 기다려 준다(docker stop -t).
+  shutdown: graceful
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  jpa:
+    show-sql: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    show-sql: false

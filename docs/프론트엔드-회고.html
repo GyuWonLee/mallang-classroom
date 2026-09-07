@@ -1,0 +1,619 @@
+<title>말랑말랑 국어교실 — 프론트엔드 최적화 · 트러블슈팅</title>
+
+<style>
+  /* ==========================================================================
+     제품(frontend/src/index.css @theme)의 토큰에서 끌어온 팔레트.
+     문서는 제품보다 한 단계 낮은 채도로 조여, 숫자가 먼저 읽히게 한다.
+     ========================================================================== */
+  :root {
+    --ground: #fbfbfc;
+    --surface: #ffffff;
+    --surface-2: #f4f5f8;
+    --line: #e2e4ea;
+    --ink: #23262c;
+    --ink-soft: #5c626e;
+    --ink-mute: #8d94a1;
+    --brand: #5566cf;
+    --brand-wash: #eef0fb;
+    --good: #1f6b33;
+    --bad: #b23a2b;
+    --warn: #7a5200;
+    --shadow: 0 1px 2px rgba(35, 38, 44, .04), 0 8px 24px rgba(35, 38, 44, .05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #15171b;
+      --surface: #1c1f24;
+      --surface-2: #23272e;
+      --line: #31363f;
+      --ink: #e8eaee;
+      --ink-soft: #aeb4bf;
+      --ink-mute: #848b97;
+      --brand: #93a0e8;
+      --brand-wash: #242941;
+      --good: #7fc98f;
+      --bad: #e79b8e;
+      --warn: #e0be74;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    }
+  }
+  :root[data-theme="light"] {
+    --ground: #fbfbfc; --surface: #ffffff; --surface-2: #f4f5f8; --line: #e2e4ea;
+    --ink: #23262c; --ink-soft: #5c626e; --ink-mute: #8d94a1;
+    --brand: #5566cf; --brand-wash: #eef0fb;
+    --good: #1f6b33; --bad: #b23a2b; --warn: #7a5200;
+  }
+  :root[data-theme="dark"] {
+    --ground: #15171b; --surface: #1c1f24; --surface-2: #23272e; --line: #31363f;
+    --ink: #e8eaee; --ink-soft: #aeb4bf; --ink-mute: #848b97;
+    --brand: #93a0e8; --brand-wash: #242941;
+    --good: #7fc98f; --bad: #e79b8e; --warn: #e0be74;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Pretendard Variable', 'Pretendard', system-ui, -apple-system,
+      'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    font-size: 16px;
+    line-height: 1.75;
+    letter-spacing: -.1px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 840px; margin: 0 auto; padding: 52px 22px 110px; }
+
+  .masthead { border-bottom: 2px solid var(--line); padding-bottom: 26px; margin-bottom: 8px; }
+  .eyebrow { font-size: .78rem; font-weight: 700; letter-spacing: .06em; color: var(--brand); margin-bottom: 9px; }
+  h1 { font-size: 1.9rem; line-height: 1.35; font-weight: 800; margin: 0 0 12px; letter-spacing: -.7px; }
+  .lede { margin: 0; color: var(--ink-soft); max-width: 68ch; }
+
+  h2 {
+    font-size: 1.3rem; font-weight: 800; letter-spacing: -.5px;
+    margin: 60px 0 6px; padding-top: 22px; border-top: 1px solid var(--line);
+  }
+  h2 .num { color: var(--brand); margin-right: 9px; font-variant-numeric: tabular-nums; }
+  h3 { font-size: 1.04rem; font-weight: 800; margin: 34px 0 6px; letter-spacing: -.3px; }
+  h4 { font-size: .94rem; font-weight: 700; margin: 20px 0 2px; color: var(--ink-soft); }
+  p { margin: 10px 0; max-width: 72ch; }
+  ul { margin: 10px 0; padding-left: 20px; max-width: 72ch; }
+  li { margin: 5px 0; }
+  code {
+    font-family: ui-monospace, 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
+    font-size: .855em; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 5px; padding: .08em .36em; word-break: break-word;
+  }
+
+  /* 결론 먼저 */
+  .verdict {
+    background: var(--brand-wash); border-left: 3px solid var(--brand);
+    border-radius: 0 10px 10px 0; padding: 14px 18px; margin: 16px 0 22px;
+  }
+  .verdict p { margin: 0; max-width: none; }
+  .verdict p + p { margin-top: 8px; }
+
+  /* 요약 수치 */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 11px; margin: 24px 0 6px; }
+  .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px; box-shadow: var(--shadow); }
+  .kpi .k { font-size: .76rem; font-weight: 700; color: var(--ink-mute); }
+  .kpi .v { font-size: 1.22rem; font-weight: 800; letter-spacing: -.5px; font-variant-numeric: tabular-nums; margin-top: 3px; }
+  .kpi .v .was { color: var(--ink-mute); font-weight: 600; font-size: .8em; }
+  .kpi .v .arrow { color: var(--ink-mute); font-weight: 600; margin: 0 3px; }
+  .kpi .d { font-size: .77rem; font-weight: 700; margin-top: 1px; color: var(--good); }
+
+  /* 표 */
+  .scroll { overflow-x: auto; margin: 16px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .89rem; min-width: 520px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { background: var(--surface-2); font-weight: 700; font-size: .81rem; color: var(--ink-soft); white-space: nowrap; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tbody tr.now { background: var(--brand-wash); }
+  tbody tr.now td { font-weight: 700; }
+  tbody tr.bad td:first-child { color: var(--bad); }
+  caption { caption-side: bottom; text-align: left; font-size: .79rem; color: var(--ink-mute); padding-top: 8px; }
+
+  /* 트러블슈팅 케이스 */
+  .case {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 2px 22px 18px; margin: 22px 0; box-shadow: var(--shadow);
+  }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 9px 0 2px; }
+  .tag {
+    font-size: .73rem; font-weight: 700; border-radius: 999px; padding: 2px 10px;
+    background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--line);
+  }
+  .tag.mine { background: var(--brand-wash); color: var(--brand); border-color: transparent; }
+  .tag.file { font-family: ui-monospace, Consolas, monospace; font-weight: 600; }
+  .label { font-size: .77rem; font-weight: 800; letter-spacing: .04em; margin: 16px 0 0; }
+  .label.sym { color: var(--bad); }
+  .label.why { color: var(--warn); }
+  .label.fix { color: var(--good); }
+
+  .note {
+    font-size: .87rem; color: var(--ink-soft); background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 16px 0; max-width: none;
+  }
+  .note p { margin: 6px 0; max-width: none; }
+  .note p:first-child { margin-top: 0; }
+  .note p:last-child { margin-bottom: 0; }
+
+  .foot { margin-top: 66px; padding-top: 18px; border-top: 1px solid var(--line); font-size: .81rem; color: var(--ink-mute); }
+</style>
+
+<div class="wrap">
+<main>
+
+  <header class="masthead">
+    <div class="eyebrow">말랑말랑 국어교실 · Frontend</div>
+    <h1>성능 최적화와 트러블슈팅 기록</h1>
+    <p class="lede">
+      WebRTC 기반 초등 복식학급 온라인 교실. 실행 환경은 학교의 오래된 PC 와 공용 와이파이다.
+      무엇을 측정해서 무엇을 고쳤는지, 그리고 기능적으로 크게 막혔던 세 건을 남긴다.
+    </p>
+  </header>
+
+  <!-- ══════════════════════════ 01 최적화 ══════════════════════════ -->
+  <section>
+    <h2><span class="num">01</span>성능 최적화</h2>
+
+    <div class="verdict">
+      <p><strong>Lighthouse 성능 77 → 99, 첫 방문 전송량 7.21 MB → 0.82 MB, LCP 3,127 ms → 974 ms.</strong></p>
+      <p>
+        가장 크게 움직인 건 이미지였다. 코드 스플리팅만 했을 때는 LCP 가 <strong>1 ms 도 변하지 않았다</strong> —
+        병목이 2 MB 짜리 PNG 였기 때문이다. 번들 최적화의 값어치는 첫 로딩이 아니라
+        <strong>재배포 때 다시 받는 양</strong>에서 나왔다.
+      </p>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="k">Lighthouse 성능</div>
+        <div class="v"><span class="was">77</span><span class="arrow">→</span>99</div>
+        <div class="d">+22</div>
+      </div>
+      <div class="kpi">
+        <div class="k">첫 방문 전송량 (/login)</div>
+        <div class="v"><span class="was">7.21</span><span class="arrow">→</span>0.82 MB</div>
+        <div class="d">−88.6%</div>
+      </div>
+      <div class="kpi">
+        <div class="k">LCP</div>
+        <div class="v"><span class="was">3,127</span><span class="arrow">→</span>974 ms</div>
+        <div class="d">−68.9%</div>
+      </div>
+      <div class="kpi">
+        <div class="k">이미지 자산</div>
+        <div class="v"><span class="was">21.1</span><span class="arrow">→</span>3.2 MB</div>
+        <div class="d">−85%</div>
+      </div>
+      <div class="kpi">
+        <div class="k">엔트리 청크 (gzip)</div>
+        <div class="v"><span class="was">364.4</span><span class="arrow">→</span>20.0 KB</div>
+        <div class="d">−94.5%</div>
+      </div>
+    </div>
+
+    <h3>1. 이미지 — 이게 병목이었다</h3>
+    <p>
+      디자인 자산이 전부 PNG 로 들어와 있었다. 배경 일러스트 한 장이 2 MB 를 넘는 것도 있었고,
+      <code>/login</code> 의 LCP 요소가 정확히 그중 하나였다.
+    </p>
+    <ul>
+      <li><strong>1차 (08-02)</strong> — PNG 38 장을 WebP 로 일괄 변환. <strong>22.1 MB → 1.04 MB (−95.3%)</strong>.</li>
+      <li>
+        <strong>2차 (08-07)</strong> — 변환 이후에도 새 자산이 다시 PNG 로 들어와 9 장 8.4 MB 가 쌓여 있었다.
+        코드가 실제로 참조하는 2 장만 WebP 로 바꾸고(1.5 MB → 85 KB), 아무도 참조하지 않는 7 장 6.7 MB 는 지웠다.
+        <code>public/assets</code> 기준 <strong>9.8 MB → 3.2 MB</strong>.
+      </li>
+    </ul>
+    <div class="note">
+      <p>
+        변환은 원본 해상도를 유지하고 품질을 실측해서 정했다. 재인코딩한 배경 한 장은 785 KB → 30 KB 인데
+        PSNR 48.7 dB · 채널 평균오차 0.65/255 로 육안 차이가 없는 범위다.
+        “줄었다”만 보고 화질을 버리면 디자인 기준(<code>ref/</code> 1:1 재현)을 어기게 된다.
+      </p>
+      <p>
+        지우는 쪽도 <code>src/</code> 만 보면 안 된다. 앱이 더는 안 쓰는 PNG 2 장을
+        디자인 원본 <code>ref/teacher.html</code> 이 참조하고 있어서 남겼다.
+      </p>
+    </div>
+
+    <h3>2. 폰트</h3>
+    <p>
+      <code>index.html</code> 이 Noto Sans KR(4 weight)과 Pretendard 를 <strong>둘 다</strong> 받고 있었다.
+      그런데 <code>--font-sans</code> 가 <code>'Pretendard', 'Noto Sans KR', …</code> 라서
+      Pretendard 가 뜨는 순간 Noto 는 절대 쓰이지 않는다. 쓰지도 않을 한 벌을 받느라 첫 화면이 늦어지고 있었다.
+    </p>
+    <ul>
+      <li>Google Fonts 제거 → 외부 origin 2 개에서 1 개로.</li>
+      <li>
+        Pretendard 를 static → <strong>variable dynamic-subset</strong> 으로 교체.
+        <code>unicode-range</code> 로 잘게 나뉘어 화면에 실제로 나온 글자의 조각만 받는다.
+        글자 수가 한정된 초등 교실 화면에서 효과가 크다.
+      </li>
+      <li>
+        <strong>08-07</strong> — 남아 있던 렌더 블로킹을 없앴다. 이 CSS 는 60 KB · <code>@font-face</code> 92 개라
+        받아 파싱할 때까지 첫 그림이 안 그려졌다. <code>preload as="style"</code> 로 우선순위를 올리고
+        <code>media="print"</code> + <code>onload</code> 로 적용 시점만 뒤로 미뤘다.
+        Pretendard CSS 자체가 <code>font-display: swap</code> 이라 글자가 안 보이는 구간은 생기지 않는다.
+      </li>
+    </ul>
+    <div class="note">
+      <p>
+        <strong>여기서 한 번 넘어졌다.</strong> dynamic-subset 이 선언하는 family 이름은
+        <code>'Pretendard Variable'</code> 이다. <code>'Pretendard'</code> 만 적어두면 웹폰트가 떠도 매칭되지 않아
+        <strong>조용히 시스템 글꼴로 떨어진다.</strong> 화면이 깨지지 않아 한참 못 알아챘다.
+      </p>
+    </div>
+
+    <h3>3. 코드 스플리팅 — 그리고 그 뒤에 생긴 회귀</h3>
+    <div class="scroll">
+      <table>
+        <caption>엔트리 청크 = 첫 진입 시 무조건 받는 덩어리. 각 시점 커밋을 다시 빌드해 측정.</caption>
+        <thead>
+          <tr><th>시점</th><th>무엇을 했나</th><th class="n">엔트리 raw</th><th class="n">gzip</th><th class="n">JS 파일 수</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>~07-30</td><td>스플리팅 없음 — 전 화면이 한 덩어리</td><td class="n">1,255.6 KB</td><td class="n">364.4 KB</td><td class="n">1</td></tr>
+          <tr><td>07-30</td><td>라우트 13 개 · 모달 9 개를 <code>lazy()</code> 로 분리</td><td class="n">358.7 KB</td><td class="n">112.3 KB</td><td class="n">45</td></tr>
+          <tr><td>08-02</td><td><code>manualChunks</code> 로 벤더 3 분할</td><td class="n">16.8 KB</td><td class="n">5.8 KB</td><td class="n">60</td></tr>
+          <tr class="bad"><td>08-06 · 회귀</td><td>방송 수명 리팩토링이 LiveKit 을 엔트리로 끌어들임</td><td class="n">541.0 KB</td><td class="n">149.0 KB</td><td class="n">64</td></tr>
+          <tr class="now"><td>08-07</td><td>참조를 끊어 LiveKit 을 다시 지연 로드로</td><td class="n">60.0 KB</td><td class="n">20.0 KB</td><td class="n">64</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>회귀가 어떻게 생겼나</h4>
+    <p>
+      08-06 에 “수업 화면을 벗어나도 방송이 끊기지 않는다” 는 기능이 들어갔다. 카메라·마이크·PDF 의 수명을
+      화면이 아니라 수업에 매다는 올바른 변경이었는데, 대신 <strong>“학급을 벗어나면 방송을 끈다”</strong> 는 규칙을
+      앱 최상위(<code>RootLayout</code>)가 맡게 됐다. 함수 하나를 부르려고 모듈 그래프가 통째로 딸려 왔다.
+    </p>
+    <p><code>RootLayout → TeacherBroadcast → ClassroomSignaling → livekit-client</code></p>
+    <p>
+      결과적으로 <strong>로그인 화면만 열어도</strong> 학생·선생님 가릴 것 없이 WebRTC SFU 클라이언트(원본 1.2 MB)를
+      통째로 받아 파싱했다. 화면도 멀쩡하고 기능도 정상이라 아무도 몰랐다 —
+      소스맵으로 엔트리 청크를 분해하고 나서야 그 <strong>82%가 livekit</strong> 이라는 걸 알았다.
+      <code>vite.config.ts</code> 주석에는 그때까지도 “LiveKit 은 교실에 들어갈 때만 받는다”고 적혀 있었다.
+    </p>
+
+    <h4>고친 방법</h4>
+    <p>
+      방송을 <strong>만드는</strong> 무거운 구현과, 지금 방송이 있는지 <strong>알고 끊는</strong> 가벼운 사실을 분리했다.
+      새 <code>teacherBroadcastHandle.ts</code> 는 현재 방송을 담아 두고
+      <code>get / set / end / releaseUnlessInClassroom</code> 만 노출한다.
+      <code>TeacherBroadcast</code> 는 자기가 만들어질 때 여기에 자신을 등록하고,
+      타입만 필요한 반대 방향 참조는 <code>import type</code> 이라 빌드에서 지워진다.
+      방송을 한 번도 켜지 않으면 livekit 은 끝내 내려받지 않는다.
+    </p>
+    <div class="scroll">
+      <table>
+        <caption>로그인 화면 진입 시 받는 JS + CSS 합계(gzip). 이미지·폰트 제외.</caption>
+        <thead>
+          <tr><th>구분</th><th class="n">08-06 (회귀 상태)</th><th class="n">08-07 (현재)</th><th class="n">차이</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>엔트리 청크</td><td class="n">149 KB</td><td class="n">20 KB</td><td class="n">−129 KB</td></tr>
+          <tr class="now"><td>합계 (벤더 · CSS · 라우트 포함)</td><td class="n">285 KB</td><td class="n">160 KB</td><td class="n">−125 KB</td></tr>
+          <tr><td>livekit</td><td class="n">엔트리에 포함</td><td class="n">127 KB · 교실 진입 시</td><td class="n">지연</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4. 재배포 때 다시 받는 양</h3>
+    <p>
+      벤더를 나눈 이유는 첫 로딩이 아니었다. 한 덩어리로 두면 화면 코드를 <strong>한 줄만 고쳐도</strong>
+      해시가 바뀌어 사용자가 React 까지 다시 받는다. 수업 중에 배포가 나가는 프로젝트라 이 차이가 크다.
+      그래서 같은 소스를 설정만 바꿔 빌드하고, 페이지 컴포넌트의 문자열 한 곳을 고쳐 다시 빌드해서
+      <strong>콘텐츠 해시가 바뀐 파일의 합계</strong>를 셌다.
+    </p>
+    <div class="scroll">
+      <table>
+        <caption>앱 코드 한 줄 수정 후 재배포 시, 재방문자가 새로 받는 양(gzip).</caption>
+        <thead>
+          <tr><th>설정</th><th class="n">재다운로드</th><th class="n">전체 번들 대비</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>분리 없음 (Vite 기본)</td><td class="n">343.9 KB</td><td class="n">77.0%</td></tr>
+          <tr><td>벤더 3 분할 (08-02)</td><td class="n">247.8 KB</td><td class="n">55.0%</td></tr>
+          <tr class="now"><td>현재 (08-07)</td><td class="n">303.0 KB</td><td class="n">49.9%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      현재 절대량이 08-02 보다 큰 건 그 사이 기능이 늘어 번들 자체가 커졌기 때문이다(450 → 608 KB).
+      비율로는 개선됐고, <code>react-vendor</code>(85 KB) · <code>motion-vendor</code>(41 KB) ·
+      <code>data-vendor</code>(29 KB) · <code>pdf</code>(123 KB)가 바이트 단위로 동일하게 유지돼 캐시에서 재사용된다.
+    </p>
+
+    <h3>5. 이미지 요소의 자리 예약</h3>
+    <p>
+      <code>&lt;img&gt;</code> 32 개 중 <code>width</code>/<code>height</code> 를 가진 것이 1 개뿐이었다.
+      받기 전에는 높이가 0 이라 그림이 도착할 때마다 아래 내용이 밀린다. 32 개 전부에
+      <code>decoding="async"</code>, 목록 행 아바타 4 곳에 <code>loading="lazy"</code>,
+      <strong>비율이 확정되는 13 곳</strong>에 실제 자연 크기를 넣었다.
+    </p>
+    <p>
+      크기가 제각각인 동적 소스(학급 카드 <code>sj_1~6</code>, 학생 아바타 <code>SM_CHARS</code>, 학년 새싹)에는
+      <strong>일부러 넣지 않았다.</strong> 한 값으로 박으면 CSS 가 한 축만 정한 이미지가 찌그러진다.
+      넣은 13 곳은 스크립트로 실제 파일 크기와 전수 대조했다. 학급 카드에는
+      <code>loading="lazy"</code> 도 걸지 않았다 — 로그인 직후 첫 화면의 주 콘텐츠라 늦게 받으면 LCP 가 밀린다.
+    </p>
+
+    <h3>Lighthouse</h3>
+    <div class="scroll">
+      <table>
+        <caption><code>/login</code>, desktop preset, 캐시 없음, 3 회 중위값, 동일 Chrome 인스턴스.</caption>
+        <thead>
+          <tr><th>시점</th><th class="n">성능</th><th class="n">FCP</th><th class="n">LCP</th><th class="n">CLS</th><th class="n">전송량</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>스플리팅 전</td><td class="n">77</td><td class="n">1,486 ms</td><td class="n">3,127 ms</td><td class="n">0.000</td><td class="n">7,211 KB</td></tr>
+          <tr><td>lazy 라우트</td><td class="n">82</td><td class="n">851 ms</td><td class="n">3,127 ms</td><td class="n">0.000</td><td class="n">6,421 KB</td></tr>
+          <tr><td>WebP + 폰트 (08-02)</td><td class="n">98</td><td class="n">788 ms</td><td class="n">974 ms</td><td class="n">0.000</td><td class="n">819 KB</td></tr>
+          <tr class="now"><td>현재 (08-07)</td><td class="n">99</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      <strong>LCP 가 1 단계와 2 단계에서 완전히 같다(3,127 ms)</strong>는 점이 이 표에서 가장 정직한 부분이다.
+      LCP 요소가 2 MB 짜리 <code>login-bg.png</code> 였으니, 코드를 아무리 쪼개도 그 이미지가 그대로면
+      LCP 는 움직이지 않는다. 병목을 찾지 않은 최적화는 아무 일도 하지 않는다.
+    </p>
+    <div class="note">
+      <p>
+        <strong>08-07 작업은 <code>/login</code> Lighthouse 점수를 거의 못 올린다 — 이미 98~99 로 천장이다.</strong>
+        그래서 이날 성과는 점수가 아니라 바이트와 CPU 로 적었다(엔트리 −129 KB, 첫 로드 −125 KB).
+        555 KB 짜리 JS 를 파싱·컴파일하지 않게 된 것이 실제 이득이고, 저사양 기기에서만 크게 드러난다.
+      </p>
+    </div>
+
+    <h3>사용자 체감은 어떻게 달라지나</h3>
+    <p>실행 환경(학교 와이파이 + 노후 PC)을 기준으로 위 수치를 해석하면 이렇다.</p>
+    <ul>
+      <li>
+        <strong>첫 진입에서 하얀 화면이 사라졌다.</strong> LCP 3.1 초는 아이가 “안 켜져요”라고 말하기
+        시작하는 구간이다. 0.97 초면 누르자마자 반응한 것으로 읽힌다.
+      </li>
+      <li>
+        <strong>글자가 늦게 바뀌는 현상이 줄었다.</strong> 안 쓰는 폰트 한 벌을 걷어내고 실제로 쓰인 글자
+        조각만 받으므로, 시스템 글꼴로 먼저 그려졌다가 교체되기까지의 시간이 짧다.
+      </li>
+      <li>
+        <strong>느린 기기에서 첫 조작이 덜 밀린다.</strong> 로그인 화면에서 WebRTC 클라이언트를 파싱하던 것을
+        없앴다. 다운로드보다 <em>파싱·컴파일</em> 비용이라 CPU 가 느릴수록 차이가 커진다.
+      </li>
+      <li>
+        <strong>화면이 뜨면서 내용이 튀는 일이 줄었다.</strong> 이미지 자리를 미리 잡아 두어 그림이 도착할 때
+        아래 버튼이 밀려 내려가지 않는다 — 누르려던 것을 잘못 누르는 상황이 준다.
+      </li>
+      <li>
+        <strong>수업 중 배포가 나가도 다시 받는 양이 절반.</strong> React · 모션 · PDF 라이브러리는 캐시에 남는다.
+      </li>
+    </ul>
+
+    <h3>남은 것</h3>
+    <ul>
+      <li>
+        LiveKit 청크(127 KB gzip)가 앱 코드를 고칠 때마다 해시가 바뀌어 재발급된다.
+        벤더로 고정하면 재다운로드가 더 줄어든다 — 측정만 해두고 아직 적용하지 않았다.
+      </li>
+      <li>nginx 가 gzip 만 쓴다. brotli 를 켜면 JS 에서 보통 15~20% 더 줄어든다. 서버 설정이라 프론트 범위 밖.</li>
+      <li>
+        Pretendard self-host 로 외부 origin 을 완전히 없앨 수 있다.
+        woff2 조각이 92 개라 저장소에 넣는 비용과 견줘 보류했다.
+      </li>
+    </ul>
+  </section>
+
+  <!-- ══════════════════════════ 02 트러블슈팅 ══════════════════════════ -->
+  <section>
+    <h2><span class="num">02</span>트러블슈팅</h2>
+
+    <div class="verdict">
+      <p>
+        <strong>가장 많이 만난 실패는 크래시가 아니라 “정상처럼 보이는데 아무것도 전달되지 않는” 상태였다.</strong>
+        사용자가 초등학생이라 정확히 신고해 주지 못한다는 점이 진단을 어렵게 만들었다.
+        아래 세 건은 전부 화면상으로는 멀쩡했다.
+      </p>
+    </div>
+
+    <div class="case">
+      <h3>케이스 1 — StrictMode 이중 마운트가 LiveKit 접속을 영구히 죽였다. 선생님만.</h3>
+      <div class="meta">
+        <span class="tag">LiveKit</span>
+        <span class="tag mine">내 작업</span>
+        <span class="tag file">ae9221d</span>
+        <span class="tag file">services/signaling/ClassroomSignaling.ts</span>
+      </div>
+
+      <p class="label sym">증상</p>
+      <p>
+        선생님 화면은 로컬 미리보기라 <strong>정상으로 보이는데</strong>, 학생에게는 영상이 전혀 가지 않는다.
+        그 페이지에 머무는 동안 절대 복구되지 않는다. 학생 계정으로는 재현되지 않았다.
+      </p>
+
+      <p class="label why">원인</p>
+      <p>
+        가드의 <strong>순서</strong> 문제였다. StrictMode 의 첫 마운트가 티켓 발급
+        (<code>POST /sessions/{id}/join</code>) HTTP 왕복을 기다리는 사이 cleanup 이 돌아
+        <code>leaving=true</code> · <code>ticket=null</code> 이 된다. 두 번째 마운트가 들어올 때
+        <code>opening</code> 이 아직 <code>true</code> 라
+        <code>if (this.room || this.opening) return</code> 에 걸려 즉시 반환된다.
+        결과적으로 <code>ticket</code> 이 영구히 <code>null</code> 이 되어 <code>open()</code> 도
+        <code>scheduleReconnect()</code> 도 못 한다 — <strong>재접속 경로가 통째로 사라진다.</strong>
+      </p>
+      <p>
+        <strong>“왜 선생님만인가”가 결정적 단서였다.</strong> 학생 훅은 join 을
+        <code>connectWithTicket</code> 앞에서 <code>await</code> 해 cleanup 시점에
+        <code>opening === false</code> 다. 선생님 훅만 티켓 발급이 <em>콜백 안에</em> 있어서
+        이 좁은 창에 정확히 걸렸다.
+      </p>
+
+      <p class="label fix">해결</p>
+      <p>
+        <code>ticket</code> · <code>leaving</code> · <code>retries</code> 세팅을 가드보다 <strong>먼저</strong> 옮겼다.
+        그러면 진행 중이던 <code>open()</code> 이 <code>if (this.leaving) return</code> 을 통과해 접속을 끝낸다.
+      </p>
+      <div class="note">
+        <p>
+          개발 모드에서만 나는 문제가 아니다. StrictMode 는 이 경합을 <strong>확실하게 재현시켰을 뿐</strong>이고,
+          같은 창은 빠른 화면 전환에서도 열린다.
+        </p>
+      </div>
+    </div>
+
+    <div class="case">
+      <h3>케이스 2 — 선생님이 친 동그라미가 학생 화면에서는 다른 자리에 찍혔다</h3>
+      <div class="meta">
+        <span class="tag">판서 · 좌표계</span>
+        <span class="tag mine">내 작업</span>
+        <span class="tag file">services/media/ScreenAnnotator.ts</span>
+        <span class="tag file">hooks/useScreenAnnotation.ts</span>
+      </div>
+
+      <p class="label sym">증상</p>
+      <p>
+        선생님이 화면공유 위 단어에 동그라미를 치면 학생 화면에서는 <strong>위치가 밀려서</strong> 찍혔다.
+        획이 안 가는 게 아니라 엉뚱한 데 갔다. 어긋나는 정도는 공유하는 창의 모양에 따라 달랐고,
+        어떤 날은 거의 맞아서 재현이 들쭉날쭉했다.
+      </p>
+
+      <p class="label why">원인</p>
+      <p>
+        좌표는 처음부터 0~1 로 정규화해 보내고 있었다. 문제는 <strong>무엇을 기준으로 나누느냐</strong>였다.
+        선생님 슬라이드(가로로 넓음)와 학생 방송 카드(16:10)는 캔버스 모양이 다르다.
+        각자 자기 캔버스를 기준으로 나누면 같은 <code>0.5</code> 가 서로 다른 지점을 가리킨다.
+      </p>
+      <p>
+        그래서 양쪽 캔버스 안에 <strong>같은 비율의 논리 보드를 letterbox 로 잡고</strong> 그 안에서만 좌표를
+        주고받도록 설계해 뒀는데, 그 기준 비율이 <code>16/10</code> <strong>고정값</strong>이었다.
+        실제 배경 영상은 화면공유 원본 비율(16:9 · 4:3 · 세로 등)대로 <code>object-contain</code> 되므로
+        <strong>보드 박스와 영상 박스가 어긋났다.</strong>
+        공유 창이 우연히 16:10 에 가까우면 맞아 보였다 — 재현이 들쭉날쭉했던 이유다.
+      </p>
+
+      <p class="label fix">해결</p>
+      <p>
+        기준 비율을 고정값에서 <strong>배경 영상의 실제 비율</strong>
+        (<code>videoWidth / videoHeight</code>)로 바꿨다. 같은 트랙을 양쪽이 함께 보므로 이 값은
+        두 화면에서 반드시 같다. 메타데이터가 아직 없으면 기존 고정값으로 폴백하고,
+        <code>loadedmetadata</code> · <code>resize</code> 에서 이미 그린 획을 새 박스로 다시 그린다.
+      </p>
+      <p>
+        기준 영상은 <strong>호출부가 <code>setBackgroundVideo()</code> 로 명시해 넣는다.</strong>
+        이전에는 캔버스 부모의 <code>&lt;video&gt;</code> 를 엔진이 스스로 찾았는데, 한 화면에 선생님 방송과
+        학생 셀프뷰가 섞여 있어 DOM 구조가 바뀌면 조용히 엉뚱한 영상을 기준으로 삼았다.
+      </p>
+      <div class="note">
+        <p>
+          카메라 영상은 <code>object-cover</code> 라 컨테이너 모양대로 잘리므로 어떤 기준을 써도 정확히 맞출 수 없다.
+          판서는 화면공유 위에서 쓰는 기능이라 <strong>공유 기준으로 맞추기로 결정</strong>하고 그 사실을 주석에 남겼다.
+        </p>
+      </div>
+    </div>
+
+    <div class="case">
+      <h3>케이스 3 — 화면공유가 안 나가거나, 얼어붙은 마지막 프레임에 묶였다</h3>
+      <div class="meta">
+        <span class="tag">LiveKit</span>
+        <span class="tag mine">내 작업</span>
+        <span class="tag file">ae9221d</span>
+        <span class="tag file">hooks/useTeacherMedia.ts</span>
+      </div>
+
+      <p class="label sym">증상</p>
+      <p>세 가지로 신고가 들어왔다.</p>
+      <ul>
+        <li>접속이 끝나기 전에 켠 화면공유가 <strong>영원히 안 나간다.</strong></li>
+        <li>재접속 후 버튼은 “공유 중지”인데 학생에게는 <strong>아무것도 안 온다.</strong></li>
+        <li>
+          브라우저 기본 UI 로 공유를 멈추면 학생 화면이 <strong>얼어붙은 마지막 프레임에 묶이고</strong>,
+          그 뒤 선생님이 카메라를 켜도 바뀌지 않는다.
+        </li>
+      </ul>
+
+      <p class="label why">원인</p>
+      <p>
+        게시가 <code>toggleScreenShare</code> 안에서만 일어나는 <strong>명령형 구조</strong>가 근본 원인이었다.
+        “버튼을 누른 그 순간”에만 게시를 시도하므로, 그 순간 조건이 안 맞거나 나중에 조건이 바뀌면 따라갈 방법이 없다.
+      </p>
+      <ul>
+        <li><code>publishScreen</code> 이 <code>if (!room) return</code> 으로 조용히 버렸다 — 카메라에는 <code>publishIfReady</code> 가 있었는데 공유에는 없었다.</li>
+        <li>재접속으로 Room 인스턴스가 새로 생겨도 재게시를 걸어 줄 트리거가 없었다.</li>
+        <li>
+          브라우저 UI 로 멈추면 로컬만 정리하고 <code>unpublish</code> 를 안 불러 LiveKit publication 이
+          죽은 트랙을 물고 남았다. 학생 화면은 화면공유를 카메라보다 우선 표시하므로 거기에 묶인다.
+        </li>
+      </ul>
+
+      <p class="label fix">해결</p>
+      <p>
+        명령형을 <strong>선언형으로 뒤집었다.</strong>
+        <code>[signalingStatus === 'connected' &amp;&amp; screenSharing]</code> 을 상태로 보고
+        단일 effect 에서만 publish/unpublish 하게 하고, <code>toggleScreenShare</code> 는
+        화면 획득 · 중지만 담당하게 했다. 연결이 끊기면 <code>screenPublishedRef</code> 를 리셋한다 —
+        이전 Room 의 publication 은 이미 죽은 것이므로.
+      </p>
+      <div class="note">
+        <p>
+          <strong>같은 계열의 문제가 나중에 한 번 더 나왔다.</strong> 방송이 화면 밖에서 살아남게 된 뒤,
+          수업 화면에 돌아오면 PDF 발표가 켜진 채로 <strong>검게</strong> 나왔다.
+          “무엇을 게시했는가”를 컴포넌트가 <code>useRef</code> 로 들고 있어서 다시 마운트되면 기억이 초기화되고,
+          이미 게시 중인데도 재게시한 것이다. LiveKit 은 게시를 내릴 때 원본 트랙까지 정지시킨다
+          (<code>stopLocalTrackOnUnpublish</code> 기본값 <code>true</code>) — 그 순간 PDF 캔버스 캡처 트랙이 죽는다.
+          게시 기억을 방송 객체로 옮기고 <code>stopOnUnpublish=false</code> 를 주는 것으로 해결했다.
+          (수정: 오현우 · <code>c5c2ef9</code>)
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════ 03 측정 방법 ══════════════════════════ -->
+  <section>
+    <h2><span class="num">03</span>측정 방법</h2>
+    <p>
+      최적화 이전의 측정값을 남겨두지 않았다. 그래서 “전/후”를 만들려면 과거를 복원해야 했다.
+      각 시점의 커밋을 <code>git worktree</code> 로 꺼내 <strong>다시 빌드</strong>하고, 같은 Chrome 인스턴스에서
+      Lighthouse 를 3 회씩 돌려 중위값을 썼다. 이미지 크기는 <code>git ls-tree -r -l</code> 로 커밋 간
+      직접 비교라 추정치가 아니다.
+    </p>
+    <ul>
+      <li>
+        <strong>엔트리 청크 분해</strong> — <code>vite build --sourcemap</code> 후 소스맵의
+        <code>sourcesContent</code> 를 패키지별로 합산했다. “엔트리의 82%가 livekit”이라는 사실은 이 방법으로 나왔다.
+      </li>
+      <li>
+        <strong>재다운로드량</strong> — 같은 소스를 설정만 바꿔 빌드하고, 페이지 컴포넌트의 문자열 한 곳을 고쳐
+        다시 빌드해서 파일명(콘텐츠 해시)이 바뀐 <code>.js</code> / <code>.css</code> 의 합계를 셌다.
+      </li>
+      <li>
+        <strong>이미지 화질</strong> — 재인코딩 결과를 다시 디코딩해 원본과 픽셀 단위로 비교했다
+        (PSNR · 평균절대오차).
+      </li>
+      <li>
+        <strong>지연 로딩 확인</strong> — 빌드 산출물 검사만으로는 부족해서, 실제로 로그인 화면을 띄우고
+        <code>performance.getEntriesByType('resource')</code> 로 livekit 모듈 요청이 0 건인지 확인했다.
+      </li>
+    </ul>
+    <div class="note">
+      <p>
+        <strong>주의해서 읽어야 하는 구간이 있다.</strong> 스플리팅 도입과 WebP 변환 사이에는 이틀치 기능 추가가
+        섞여 있다. 그 구간의 JS 증가는 최적화가 실패한 게 아니라 코드가 늘어난 것이다.
+      </p>
+      <p>
+        또 <code>npm run dev</code> 에서 잰 Lighthouse 는 55 점이 나오는데 이 숫자는 의미가 없다 —
+        dev 서버는 미니파이 · 번들링 없이 모듈을 수백 개로 쪼개 내려준다.
+        이 문서의 값은 전부 프로덕션 빌드 기준이다.
+      </p>
+    </div>
+  </section>
+
+  <p class="foot">
+    측정 · 작성 기준 브랜치 <code>dev/fe</code> · 최종 갱신 2026-08-07 ·
+    커밋 해시가 붙은 항목은 <code>git show &lt;hash&gt;</code> 로 원본 변경을 확인할 수 있다.
+  </p>
+
+</main>
+</div>

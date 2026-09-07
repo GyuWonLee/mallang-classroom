@@ -1,0 +1,117 @@
+plugins {
+	id 'java'
+	id 'jacoco'
+	id 'org.springframework.boot' version '4.1.0'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.mallang'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	// /actuator/prometheus 노출용. 애플리케이션 코드에서 참조하지 않으므로 runtimeOnly
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	// 선생님 비밀번호 재설정 메일. spring.mail.host 가 비어 있으면 JavaMailSender 빈이
+	// 만들어지지 않고, 발송만 건너뛴다 (PasswordResetMailSender 가 그 경우를 다룬다).
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+	// Boot 4는 flyway 자동설정이 별도 스타터로 분리됨 (flyway-core 단독으로는 동작 안 함)
+	implementation 'org.springframework.boot:spring-boot-starter-flyway'
+	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	implementation 'io.livekit:livekit-server:0.14.0'
+	implementation 'org.apache.pdfbox:pdfbox:3.0.3'
+	implementation 'com.anthropic:anthropic-java:2.34.0'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'org.postgresql:postgresql'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-redis-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-websocket-test'
+	testCompileOnly 'org.projectlombok:lombok'
+	// 컨텍스트 로딩 테스트용 인메모리 DB — 스키마는 만들지 않고(ddl-auto: none) 배선만 검증한다
+	testRuntimeOnly 'com.h2database:h2'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	finalizedBy tasks.jacocoTestReport
+}
+
+// 커버리지 — 측정 대상은 "우리가 쓴 분기"다.
+// 아래 제외 항목은 로직이 없어 커버해도 의미가 없고, 포함하면 수치만 부풀어 기준이 무뎌진다:
+//   - dto        : record. 접근자뿐
+//   - Dtos       : 중첩 record 묶음
+//   - entity     : JPA 엔티티. getter 와 정적 팩터리뿐
+//   - global/config, MallangApplication : 스프링 배선
+def coverageExclusions = [
+		'com/mallang/**/dto/**',
+		'com/mallang/**/*Dtos*',
+		'com/mallang/**/entity/**',
+		'com/mallang/global/config/**',
+		'com/mallang/MallangApplication*',
+]
+
+jacocoTestReport {
+	dependsOn tasks.test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+	afterEvaluate {
+		classDirectories.setFrom(classDirectories.files.collect {
+			fileTree(dir: it, exclude: coverageExclusions)
+		})
+	}
+}
+
+jacocoTestCoverageVerification {
+	dependsOn tasks.jacocoTestReport
+	afterEvaluate {
+		classDirectories.setFrom(classDirectories.files.collect {
+			fileTree(dir: it, exclude: coverageExclusions)
+		})
+	}
+	violationRules {
+		rule {
+			element = 'BUNDLE'
+			limit {
+				counter = 'INSTRUCTION'
+				minimum = 0.70
+			}
+			limit {
+				counter = 'BRANCH'
+				minimum = 0.60
+			}
+		}
+	}
+}
+
+tasks.named('check') {
+	dependsOn tasks.jacocoTestCoverageVerification
+}

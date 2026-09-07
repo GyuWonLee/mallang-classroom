@@ -1,0 +1,6 @@
+plugins {
+    // 빌드 환경에 Java 17이 없으면 자동 다운로드 (Jenkins 컨테이너가 JDK 21이라 필요)
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'backend'

@@ -1,0 +1,345 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   DESIGN TOKENS - single source of truth (Tailwind v4 @theme)
+   Change a value here and every bg-* / text-* / border-* util updates.
+   NOTE: keep comments ASCII-only. Multi-byte chars inside CSS comments break
+   Tailwind v4 utility generation in this toolchain.
+   Color budget: White 60 / Blue 20 / Yellow 10 / Mint 7 / Gold 3
+   ========================================================================== */
+@theme {
+  /* Blue - brand: sidebar, buttons, selected state */
+  --color-primary: #6276d9;
+  --color-primary-hover: #5568cc;
+  --color-sidebar: #687cb8;
+  /* Light lavender - message panel header band */
+  --color-sidebar-soft: #e5eaf8;
+
+  /* Light Blue - broadcast / live background */
+  --color-sky: #dcebfa;
+  --color-sky-deep: #cbe0f5;
+  /* 선생님 쪽지판 바탕 — 흰 카드보다 살짝 파란 종이. 그 위에 흰 말풍선이 떠 보인다 */
+  --color-note-paper: #f2f6ff;
+
+  /* Yellow - today's task (things to do now) */
+  --color-task: #f5d46a;
+  --color-task-soft: #fff4d8;
+  --color-task-deep: #7a5200;
+
+  /* Mint - AI tutor only */
+  --color-mint: #82d8c6;
+  --color-mint-bg: #e9f8f3;
+  --color-mint-deep: #0f7a63;
+  /* 말랑이 패널 카드 바탕(종이 느낌 - 대화판은 그 위에 흰색으로 얹힌다) 과
+     말랑이 말풍선. 위 민트보다 노란기가 있어
+     수업 화면의 종이 배경과 같은 결로 읽힌다 - AI 말랑이 패널에서만 쓴다. */
+  --color-tutor-paper: #faf9f2;
+  --color-tutor-bubble: #f3f7ea;
+
+  /* Gold - XP / praise only */
+  --color-xp: #f3be3a;
+  --color-xp-deep: #6b4700;
+
+  /* Button hover tints. These live here (not inline in Button.tsx) so a palette
+     change moves the hover state with it - Rule 5. */
+  --color-ghost-hover: #f3f3f3;
+  --color-danger-hover: #fbdad5;
+
+  /* Quiz correct / wrong */
+  --color-success: #a7e8b7;
+  --color-success-deep: #1f6b33;
+  --color-danger: #e14b3b;
+  --color-danger-soft: #fdeae7;
+  /* Progress / comprehension bar fill for the "high" band (71-100).
+     Not a new brand color - just a brighter mix of the two success tones. */
+  --color-level-high: color-mix(in srgb, var(--color-success-deep) 55%, var(--color-success) 45%);
+
+  /* Neutral */
+  --color-canvas: #fbfbfb;
+  --color-card: #ffffff;
+  --color-ink: #2e3137;
+  --color-ink-soft: #6f7683;
+  --color-ink-mute: #a7adb8;
+  --color-track: #ececec;
+
+  /* Teacher dashboard surfaces (page frame > panel > card) */
+  --color-page: #f7f8fa;
+  --color-frame: #dadae2;
+  --color-band: #eef0fa;
+  --color-panel-line: #dddfe2;
+  --color-live-line: #e3e4ea;
+  /* Locked / closed class section */
+  --color-locked: #f7f7f9;
+  /* Chat + slide surfaces */
+  --color-chat-surface: #f4f5f9;
+  --color-paper: #fcf8ea;
+
+  /* Radius */
+  --radius-page: 34px;
+  --radius-card: 28px;
+  --radius-card-md: 24px;
+  /* Class / grade cards - ref --r-card */
+  --radius-tile: 22px;
+
+  /* Title scale - ref --fs-section-title / --fs-panel-title / --fs-widget-title */
+  --text-section-title: 1.8rem;
+  --text-panel-title: 1.6rem;
+  --text-widget-title: 1.32rem;
+
+  /* Shadow */
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-card-lg: 0 14px 32px rgba(0, 0, 0, 0.08);
+  /* Teacher dashboard panels and class cards */
+  --shadow-panel: 0 8px 20px rgba(0, 0, 0, 0.14);
+  --shadow-tile: 0 14px 28px rgba(30, 30, 35, 0.14);
+
+  /* Easing - bouncy */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /*
+    Font — 웹폰트는 Pretendard 한 벌만 받는다 (index.html).
+
+    **'Pretendard Variable' 이 먼저다.** dynamic-subset 배포본이 선언하는 family 이름이
+    그것이라, 'Pretendard' 만 적어 두면 웹폰트가 떠도 매칭되지 않아 조용히 시스템 글꼴로
+    떨어진다. 뒤의 'Pretendard' 는 정적 배포본을 캐시에 갖고 있는 사용자를 위한 것이고,
+    그 뒤는 웹폰트가 늦거나 실패했을 때 한글이 깨지지 않게 하는 OS 기본 글꼴이다.
+  */
+  --font-sans: 'Pretendard Variable', 'Pretendard', system-ui, 'Apple SD Gothic Neo',
+    'Malgun Gothic', sans-serif;
+
+  /* Ambient / small CSS animations. Entrance & exit transitions use Framer Motion. */
+  --animate-pulse-dot: pulse-dot 1.6s infinite;
+  --animate-wiggle: wiggle 0.6s var(--ease-bounce);
+  --animate-floaty: floaty 3.2s ease-in-out infinite;
+  --animate-status-pop: status-pop 0.5s var(--ease-bounce);
+  --animate-shake: shake 0.45s;
+  --animate-mascot-jump: mascot-jump 0.7s var(--ease-bounce);
+  /*
+    진행도 별 하나가 통통 뛰는 동작 — 정답을 맞혔을 때 쓴다(QuizView).
+
+    `mascot-jump`(-30px)를 쓰지 않는 이유: 별은 52px 이고 흰 알약 안에 들어 있어서 30px 을
+    뛰면 알약 밖으로 나가 잘린다. 14px 이면 알약 안에서 통통 튄다.
+  */
+  --animate-star-jump: star-jump 0.55s var(--ease-bounce);
+  /* 글자 한 자씩 물결치기 — 기다리는 화면의 제목 (아래 keyframes 주석 참고) */
+  --animate-text-wave: text-wave 1.8s ease-in-out infinite;
+  --animate-modal-in: modal-in 0.45s var(--ease-bounce);
+  /* ref .sm-dpane.active / .sm-menu.show entrance */
+  --animate-fade-up: fadeUp 0.32s var(--ease-bounce);
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+@keyframes wiggle {
+  0%, 100% { rotate: 0deg; }
+  25% { rotate: -14deg; }
+  60% { rotate: 12deg; }
+}
+@keyframes floaty {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -9px; }
+}
+@keyframes status-pop {
+  0% { transform: scale(0.6); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-9px); }
+  45% { transform: translateX(8px); }
+  70% { transform: translateX(-5px); }
+}
+@keyframes mascot-jump {
+  0%, 100% { translate: 0 0; }
+  35% { translate: 0 -30px; }
+  55% { translate: 0 -22px; }
+}
+
+/*
+  `transform` 이 아니라 `translate` 속성을 쓴다 — 별에는 이미 `scale-110`(현재 문항 표시)이
+  걸려 있어서, transform 으로 뛰면 그 확대가 애니메이션에 덮여 사라진다.
+*/
+@keyframes star-jump {
+  0%, 100% { translate: 0 0; }
+  35% { translate: 0 -14px; }
+  60% { translate: 0 -6px; }
+}
+
+/*
+  글자 한 자씩 물결치듯 뛰는 움직임 (기다리는 화면의 제목에 쓴다).
+
+  `star-jump`(-14px)를 그대로 쓰지 않는 이유: 글자는 줄 안에서 서로 붙어 있어 그만큼 뛰면
+  줄이 출렁여 읽기가 어렵다. **-5px** 이면 "살아 있다" 는 느껴지고 글줄은 흔들리지 않는다.
+  `translate` 로 움직이므로 글자에 걸린 다른 transform(있다면)을 덮지 않는다.
+*/
+@keyframes text-wave {
+  0%, 60%, 100% { translate: 0 0; }
+  30% { translate: 0 -5px; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; translate: 0 10px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+@layer base {
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    /* Match the reference: it sets no base line-height, so every element falls
+       back to the font's own metrics (normal, roughly 1.18 for this face).
+       Tailwind's preflight puts 1.5 here instead, which made every un-styled
+       line ~25% taller than the reference. That is not a text-only difference:
+       it inflated card bodies, table headers and buttons, so fixed-height
+       reference boxes (grade cards, class tiles, stat cells) never lined up
+       and had to be patched one element at a time.
+       Blocks of running prose need more air than the font default, so give
+       them an explicit leading-* the way the reference does (its hero copy
+       uses 1.65, section text 1.6) rather than relying on a global value. */
+    line-height: normal;
+    /* No `scrollbar-gutter: stable` here. It used to be on <html> to stop the
+       layout shifting sideways when a page scrollbar came and went, but it
+       reserves the gutter *always* — on the teacher screens the window can
+       never scroll (TeacherShell is h-[100dvh] overflow-hidden), so it drew a
+       permanently empty scrollbar track next to the app. The gutter now sits on
+       the elements that actually scroll (TeacherShell's content column), which
+       is where the shift it prevents can happen. */
+  }
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* Korean wraps per-syllable by default, so a sentence breaks in the middle
+       of a word (see ref DESIGN_GUIDELINES: word-break keep-all). keep-all
+       forces breaks at spaces only; overflow-wrap still rescues a single token
+       longer than its container (pasted URLs, long ids). */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  /* Teacher screens scroll in exactly one place: the shell's content column
+     (TeacherShell, overflow-y-auto), which keeps the sidebar fixed in view.
+     The shell already fills the viewport (h-[100dvh]), but `min-height: 100vh`
+     above plus a stray pixel (scrollbar width, browser zoom, dvh/vh rounding)
+     was enough for the window to grow its own scrollbar — a second bar right
+     next to the content column's. Pin the document so it cannot happen.
+     Below 640px the shell switches to h-auto and the page scrolls again (the
+     sidebar becomes a bottom bar there), so the lock must not apply. */
+  @media (min-width: 641px) {
+    body:has(.teacher-shell) {
+      height: 100dvh;
+      overflow: hidden;
+    }
+  }
+  button {
+    font-family: inherit;
+  }
+  button:focus-visible,
+  a:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Hide the scrollbar bar itself while keeping the area scrollable.
+   Modal panels looked cluttered with a visible track. Wheel, touch, keyboard
+   and programmatic scrolling all still work -- only the bar is not painted.
+   Use this only where a clipped edge already hints that more content follows;
+   on a plain list the bar is the only affordance and should stay. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   PRINT - report card (report-card sheets)
+   The preview is rendered into a portal on <body> with id="print-portal",
+   NOT inside #root. That is what lets printing hide the whole app with one
+   rule and keep only the sheets. ReportCardOverlay toggles body.report-print
+   while it is mounted, so ordinary Ctrl+P elsewhere in the app is untouched.
+   NOTE: keep comments ASCII-only (see the token block at the top).
+   ========================================================================== */
+@page {
+  size: A4 portrait;
+  /* Sheet content is 190mm wide; 10mm margins make that exactly A4. */
+  margin: 10mm;
+}
+
+@media print {
+  body.report-print {
+    background: #fff;
+  }
+
+  body.report-print #root {
+    display: none !important;
+  }
+
+  /* The on-screen overlay is a fixed, scrolling, tinted layer. On paper it has
+     to become plain flow content or only the first viewport would be printed. */
+  body.report-print #print-portal {
+    position: static !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  /* One student per sheet. The last one must not push out a blank page.
+     No break-inside:avoid here on purpose -- break-after already starts every
+     sheet at the top of a page, so it would only add a stray blank page in the
+     rare case a roster with many concept tags runs past one page. */
+  body.report-print .report-page {
+    break-after: page;
+  }
+  body.report-print .report-page:last-child {
+    break-after: auto;
+  }
+
+  /* Table header tints are part of the form, not decoration -- browsers drop
+     backgrounds when printing unless told otherwise. */
+  body.report-print #print-portal * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* The teacher edits the grade and the criterion right on the sheet, so those
+     cells are a <select> and an <input>. On paper they must read as plain text:
+     strip the dashed affordance, the focus tint and the dropdown arrow.
+     A <select> prints its selected option's text once appearance is none. */
+  body.report-print .rc-field {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: inherit !important;
+    font: inherit !important;
+    padding: 0 !important;
+    text-overflow: clip !important;
+  }
+}

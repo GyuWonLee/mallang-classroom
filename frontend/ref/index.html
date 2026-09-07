@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리반 국어교실 — 라이브 수업</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+/* ============================================================
+   디자인 시스템 — "색은 기능을 설명한다"
+   카드는 대부분 흰색, 색은 헤더/아이콘/버튼에만.
+   컬러 예산: White 60% · Blue 20% · Yellow 10% · Mint 7% · Gold 3%
+   ============================================================ */
+:root{
+  /* 파랑(Blue) — 서비스 대표색: 사이드바·버튼·선택 상태 */
+  --primary:#6276D9;       --primary-hover:#5568CC;
+  --sidebar:#687CB8;
+  /* 방송(Light Blue) — 영상통화·라이브 배경, 집중 */
+  --sky:#DCEBFA;
+  /* 오늘의 과제(Yellow) — "지금 해야 하는 것"에만 */
+  --task:#F5D46A;          --task-soft:#FFF4D8;   --task-deep:#7A5200;
+  /* AI 말랑이(Mint) — AI에서만 사용 */
+  --mint:#82D8C6;          --mint-bg:#E9F8F3;     --mint-deep:#0F7A63;
+  /* XP/칭찬(Gold) — 별·XP·레벨 전용, 다른 곳엔 쓰지 않음 */
+  --xp:#F3BE3A;            --xp-deep:#6B4700;
+  /* 정답/오답 (퀴즈 전용 예외 색 — 대시보드 색 예산 밖) */
+  --success:#A7E8B7;       --success-deep:#1F6B33;
+  --red:#E14B3B;           --red-soft:#FDEAE7;
+
+  --bg:#FBFBFB;
+  --card:#FFFFFF;
+  --ink:#2E3137;
+  --ink-soft:#6F7683;
+  --ink-mute:#A7ADB8;
+  --track:#ECECEC;
+
+  --r-lg:28px;
+  --r-md:24px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
+  --shadow-lg:0 14px 32px rgba(0,0,0,.08);
+
+  --bounce:cubic-bezier(.34,1.56,.64,1);
+  --font:'Pretendard','Noto Sans KR',sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:var(--font);color:var(--ink);background:var(--bg);
+  min-height:100vh;overflow-x:hidden;
+}
+button{font-family:inherit;border:none;cursor:pointer;background:none;color:inherit}
+button:focus-visible,a:focus-visible{outline:3px solid var(--primary);outline-offset:3px;border-radius:12px}
+
+/* ============ 앱 레이아웃 ============ */
+.app{display:flex;gap:28px;max-width:1500px;margin:0 auto;padding:24px 28px}
+
+/* ============ 사이드바 (딥 블루) ============ */
+.sidebar{
+  flex:none;width:118px;
+  background:var(--sidebar);border-radius:32px;box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;align-items:center;
+  padding:22px 12px 22px;gap:6px;
+  position:sticky;top:24px;align-self:stretch;min-height:560px;
+}
+.side-logo-wrap{
+  width:60px;height:60px;margin-bottom:16px;border-radius:50%;
+  background:#fff;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.12);
+}
+.side-logo{width:44px;height:44px}
+.nav-item{
+  width:94px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:12px 4px;border-radius:20px;
+  color:rgba(255,255,255,.82);font-size:.75rem;font-weight:700;
+  word-break:keep-all;text-align:center;line-height:1.35;
+  transition:transform .18s var(--bounce),background .18s,color .18s;
+}
+.nav-item svg{width:26px;height:26px}
+.nav-item svg .fill{fill:rgba(255,255,255,.82)}
+.nav-item:hover{transform:translateY(-2px);color:#fff}
+.nav-item:hover svg .fill{fill:#fff}
+.nav-item.active{color:#fff}
+.nav-item.active .nav-ico{
+  width:64px;height:56px;border-radius:18px;background:#fff;
+  display:grid;place-items:center;box-shadow:0 8px 16px rgba(0,0,0,.18);
+}
+.nav-item.active .nav-ico svg .fill{fill:var(--primary)}
+.nav-item .nav-ico{display:grid;place-items:center;width:64px;height:34px}
+.logout{
+  margin-top:auto;display:flex;align-items:center;gap:7px;
+  color:rgba(255,255,255,.82);font-size:.75rem;font-weight:700;white-space:nowrap;
+  padding:11px 9px;border-radius:14px;
+}
+.logout:hover{background:rgba(255,255,255,.12);color:#fff}
+.logout svg{width:17px;height:17px}
+
+/* ============ 콘텐츠 ============ */
+.content{flex:1;min-width:0}
+.greet-row{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding:8px 4px 24px;flex-wrap:wrap;
+}
+.greet h1{font-size:1.7rem;font-weight:900;letter-spacing:-.5px}
+.greet p{margin-top:5px;color:var(--ink-soft);font-weight:500;font-size:.95rem}
+.greet-right{display:flex;align-items:center;gap:22px}
+.xp-block{display:flex;align-items:center;gap:12px}
+.xp-block .star{width:44px;height:44px;flex:none;object-fit:contain}
+.xp-info .xp-label{font-size:.8rem;font-weight:700;color:var(--ink)}
+.xp-info .xp-num{font-size:.95rem;font-weight:900;color:var(--ink);margin:2px 0 6px}
+.xp-bar{width:170px;height:10px;background:var(--track);border-radius:999px;overflow:hidden}
+.xp-fill{height:100%;width:48%;border-radius:999px;background:var(--primary);transition:width .9s var(--bounce)}
+.xp-num{font-size:.72rem;color:var(--ink-soft);font-weight:700;white-space:nowrap}
+.me-chip{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border-radius:999px;padding:7px 16px 7px 8px;
+  box-shadow:var(--shadow);font-weight:700;font-size:.92rem;
+}
+.me-chip .avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:var(--sky)}
+.me-chip .avatar img{width:100%;height:100%;object-fit:cover}
+.me-chip svg.chev{width:14px;height:14px}
+
+/* ============ 메인 그리드 ============ */
+/* 좌우 컬럼 높이 동기화: stretch + 화상 카드가 남는 높이를 흡수 */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:26px;align-items:stretch}
+.main-col{display:flex;flex-direction:column;gap:18px}
+.right-col{display:flex;flex-direction:column;gap:18px}
+
+/* ---- 화상 카드 (선생님 방송 · 유일하게 색이 채워진 카드) ---- */
+.video-card{
+  position:relative;border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:var(--shadow-lg);background:var(--sky);
+  aspect-ratio:16/10;min-height:380px;flex:none;
+}
+.scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%}
+.live-chip{
+  position:absolute;top:18px;left:18px;display:flex;align-items:center;gap:9px;
+  background:#fff;border-radius:999px;padding:8px 16px;
+  font-weight:900;font-size:.85rem;box-shadow:0 4px 14px rgba(0,0,0,.10);
+}
+.live-chip .badge{
+  display:flex;align-items:center;gap:6px;background:var(--red);color:#fff;
+  border-radius:999px;padding:3px 10px;font-size:.75rem;
+}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}}
+.live-time{color:var(--ink);font-weight:900}
+.fullscreen-btn{
+  position:absolute;top:18px;right:18px;display:flex;align-items:center;gap:8px;
+  background:#fff;border-radius:999px;padding:9px 16px 9px 10px;
+  font-weight:900;font-size:.85rem;color:var(--ink);
+  box-shadow:0 4px 14px rgba(0,0,0,.10);
+  transition:transform .18s var(--bounce);
+}
+.fullscreen-btn:hover{transform:translateY(-2px)}
+.fullscreen-btn:active{transform:scale(1.06)}
+.fullscreen-btn svg{width:18px;height:18px}
+.fullscreen-btn svg .fill{fill:var(--primary)}
+.controls{
+  position:absolute;left:50%;bottom:20px;transform:translateX(-50%);
+  display:flex;gap:16px;
+}
+/* 전체 화면일 때: 하단이 비지 않도록 선생님 바 + 캐릭터 줄을 영상 안쪽 하단에 쌓아서 채움
+   (표준 :fullscreen 뿐 아니라 구형 웹킷 접두사도 함께 지원) */
+.video-card:fullscreen,
+.video-card:-webkit-full-screen,
+.video-card:-moz-full-screen,
+.video-card:-ms-fullscreen{
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+.video-card:fullscreen .controls,
+.video-card:-webkit-full-screen .controls{bottom:250px}
+.video-card:fullscreen #teacherBar,
+.video-card:fullscreen .char-panel,
+.video-card:-webkit-full-screen #teacherBar,
+.video-card:-webkit-full-screen .char-panel{
+  position:relative;flex:none;width:100%;margin:0;border-radius:0;box-shadow:none;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(8px);
+}
+.video-card:fullscreen #teacherBar,
+.video-card:-webkit-full-screen #teacherBar{
+  padding:26px 48px;
+}
+.video-card:fullscreen #teacherBar .t-name,
+.video-card:-webkit-full-screen #teacherBar .t-name{font-size:1.3rem}
+.video-card:fullscreen #teacherBar .t-sub,
+.video-card:-webkit-full-screen #teacherBar .t-sub{font-size:1rem}
+.video-card:fullscreen #teacherBar .chat-open-btn,
+.video-card:-webkit-full-screen #teacherBar .chat-open-btn{padding:16px 24px;font-size:1rem}
+.video-card:fullscreen .char-panel,
+.video-card:-webkit-full-screen .char-panel{
+  padding:18px 48px 26px;
+  border-top:1px solid rgba(0,0,0,.06);
+  display:flex;align-items:center;
+}
+.video-card:fullscreen .char-panel .char-strip,
+.video-card:-webkit-full-screen .char-panel .char-strip{width:100%}
+.video-card:fullscreen .char-btn img,
+.video-card:-webkit-full-screen .char-btn img{width:68px;height:68px}
+.ctrl{
+  width:58px;height:58px;border-radius:50%;
+  background:#fff;display:grid;place-items:center;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+  transition:transform .18s var(--bounce),background .18s;
+}
+.ctrl:hover{transform:translateY(-4px) scale(1.06);background:var(--sky)}
+.ctrl:active{transform:scale(1.1)}
+.ctrl svg{width:24px;height:24px}
+.ctrl svg .fill{fill:var(--ink)}
+.ctrl svg .slash{stroke:#fff;stroke-width:2.6;stroke-linecap:round;opacity:0;transition:opacity .15s}
+.ctrl.off{background:var(--red)}
+.ctrl.off svg .fill{fill:#fff}
+.ctrl.off svg .slash{opacity:1}
+.ctrl.hand-up{background:var(--task);animation:wiggle .6s var(--bounce)}
+@keyframes wiggle{0%,100%{rotate:0deg}25%{rotate:-14deg}60%{rotate:12deg}}
+
+/* ---- 선생님 바 (흰 카드) ---- */
+.teacher-bar{
+  background:var(--card);border-radius:var(--r-md);
+  box-shadow:var(--shadow);padding:18px 24px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.teacher-bar .t-name{font-size:1.08rem;font-weight:900;color:var(--primary)}
+.teacher-bar .t-sub{margin-top:3px;color:var(--ink-soft);font-weight:500;font-size:.9rem}
+.chat-open-btn{
+  margin-left:auto;display:flex;align-items:center;gap:8px;
+  background:var(--sky);color:var(--primary);
+  font-weight:700;font-size:.9rem;
+  border-radius:999px;padding:12px 20px;
+  transition:transform .18s var(--bounce),background .18s;
+}
+.chat-open-btn:hover{transform:translateY(-2px);background:#CBE0F5}
+.chat-open-btn:active{transform:scale(1.05)}
+.chat-open-btn svg{width:18px;height:18px}
+
+/* ---- 오늘의 과제 패널 (흰 카드, 헤더만 옐로) ---- */
+.task-panel{
+  position:relative;overflow:hidden;
+  background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow);
+  padding:22px 22px 22px;
+  flex:none;display:flex;flex-direction:column;
+}
+.task-art{
+  width:220px;height:auto;flex:none;margin-left:auto;
+  transform:translate(-16px,14px);
+  pointer-events:none;
+}
+.task-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px}
+.task-head h2{font-size:2rem;font-weight:900;line-height:1.15;white-space:nowrap;margin-top:22px}
+.task-head .t-count{margin-top:2px;font-size:.84rem;font-weight:700;color:var(--ink-soft)}
+.task-row{
+  display:flex;align-items:center;gap:13px;
+  background:var(--card);border:2px solid var(--bg);border-radius:18px;padding:14px 14px;
+  margin-bottom:12px;
+  transition:transform .18s var(--bounce),border-color .18s;
+}
+.task-row:hover{transform:translateY(-2px)}
+.task-row .t-num{
+  width:40px;height:40px;flex:none;border-radius:50%;
+  background:var(--primary);color:#fff;
+  display:grid;place-items:center;font-weight:900;font-size:1rem;
+}
+.task-row .t-info{flex:1;min-width:0}
+.task-row .t-title{font-weight:900;font-size:.98rem}
+.task-row .t-sub{margin-top:2px;font-size:.8rem;font-weight:500;color:var(--ink-soft)}
+.task-row .t-btn{
+  flex:none;font-weight:700;font-size:.85rem;
+  border-radius:999px;padding:11px 18px;min-height:44px;
+  transition:transform .18s var(--bounce);
+}
+.task-row .t-btn:hover{transform:scale(1.05)}
+.task-row .t-btn:active{transform:scale(1.1)}
+.t-btn.start{border:2px solid var(--primary);color:var(--primary);background:#fff}
+.t-btn.replay{
+  display:flex;align-items:center;gap:7px;
+  background:var(--task);color:var(--task-deep);
+}
+.t-btn.replay svg{width:16px;height:16px}
+.task-row.done{background:var(--task-soft);border-color:var(--task)}
+.task-row.done .t-num{background:var(--task-deep);color:transparent;position:relative}
+.task-row.done .t-num::after{
+  content:"";position:absolute;inset:0;
+  background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M4.5 12.7l4.6 4.6L19.5 6.9a1.4 1.4 0 0 1 2 2L10.2 20.2a1.6 1.6 0 0 1-2.2 0l-5.5-5.5a1.4 1.4 0 0 1 2-2Z"/></svg>') center/20px no-repeat;
+}
+.task-row.next{border-color:var(--sky)}
+.next-flag{
+  display:inline-block;margin-left:8px;font-size:.68rem;font-weight:900;color:var(--primary-hover);
+  background:var(--sky);border-radius:999px;padding:2px 9px;vertical-align:middle;
+}
+.all-tasks{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--bg);color:var(--ink-soft);
+  font-weight:900;font-size:.92rem;
+  border-radius:16px;padding:14px;margin-top:auto;
+  transition:transform .18s var(--bounce),background .18s;
+}
+.all-tasks:hover{transform:translateY(-2px);background:#EFEBE2}
+.all-tasks:active{transform:scale(1.04)}
+.all-tasks svg{width:16px;height:16px}
+
+/* ---- 캐릭터 (임시 배치) ---- */
+.char-panel{
+  background:var(--card);border-radius:var(--r-md);box-shadow:var(--shadow);
+  padding:18px 20px;
+}
+.char-strip{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  gap:16px;
+}
+.char-btn{
+  flex:none;padding:4px;border-radius:50%;
+  transition:transform .18s var(--bounce);
+}
+.char-btn img{
+  width:64px;height:64px;object-fit:contain;display:block;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.10));
+}
+.char-btn:hover{transform:translateY(-4px) scale(1.08)}
+.char-btn:active{transform:scale(1.12)}
+
+/* ============ 퀴즈 화면 ============ */
+.quiz{max-width:780px;margin:0 auto;display:none}
+.quiz.active{display:block;animation:fadeUp .45s var(--bounce)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.quiz-top{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.back-btn{
+  display:flex;align-items:center;gap:8px;
+  background:var(--card);border-radius:999px;padding:12px 20px;
+  font-weight:700;font-size:.9rem;color:var(--ink-soft);
+  box-shadow:var(--shadow);transition:transform .18s var(--bounce);
+}
+.back-btn:hover{transform:translateX(-4px)}
+.back-btn:active{transform:scale(1.05)}
+.back-btn svg{width:15px;height:15px}
+.quiz-dots{margin-left:auto;display:flex;gap:10px}
+.qdot{
+  width:40px;height:13px;border-radius:999px;background:var(--track);
+  transition:background .3s,transform .3s var(--bounce);
+}
+.qdot.now{background:var(--primary);transform:scaleY(1.25)}
+.qdot.ok{background:var(--success-deep)}
+.quiz-card{
+  background:var(--card);border-radius:32px;box-shadow:var(--shadow-lg);
+  padding:42px 46px 38px;
+}
+.q-label{
+  display:inline-block;background:var(--sky);color:var(--primary);
+  font-weight:900;font-size:.88rem;
+  border-radius:999px;padding:8px 18px;margin-bottom:16px;
+}
+.q-text{font-size:1.55rem;font-weight:900;line-height:1.45;letter-spacing:-.3px}
+/* 원고지 지문 */
+.q-passage{margin-top:20px;display:flex;flex-direction:column;width:fit-content;max-width:100%}
+.mn-row{display:flex}
+.mn-cell{
+  width:42px;height:42px;flex:none;display:grid;place-items:center;
+  border:1.5px solid var(--bg);margin:-.75px;
+  font-size:1.15rem;font-weight:700;color:var(--ink);
+  background:#FBFAFE;
+}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}
+.ans{
+  display:flex;align-items:center;gap:14px;text-align:left;
+  background:#fff;border:2.5px solid var(--bg);border-radius:18px;
+  padding:18px 20px;font-size:1.02rem;font-weight:700;min-height:72px;
+  transition:transform .18s var(--bounce),border-color .18s,background .18s;
+}
+.ans .key{
+  width:36px;height:36px;flex:none;display:grid;place-items:center;
+  background:var(--sky);color:var(--primary);border-radius:50%;
+  font-weight:900;font-size:.92rem;
+  transition:transform .2s var(--bounce);
+}
+.ans:hover{transform:translateY(-4px);border-color:var(--primary)}
+.ans:hover .key{transform:scale(1.1)}
+.ans:active{transform:scale(1.03)}
+.ans:disabled{cursor:default}
+.ans.correct{background:var(--success);border-color:var(--success-deep)}
+.ans.correct .key{background:var(--success-deep);color:#fff}
+.ans.wrong{background:var(--red-soft);border-color:var(--red);animation:shake .45s}
+.ans.wrong .key{background:var(--red);color:#fff}
+.ans.tried{background:var(--red-soft);border-color:#F2C4BD;opacity:.6}
+.ans.tried .key{background:#F2C4BD;color:#fff}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}45%{transform:translateX(8px)}70%{transform:translateX(-5px)}}
+.q-feedback{min-height:34px;margin-top:22px;text-align:center;font-size:1.15rem;font-weight:900}
+.q-feedback.good{color:var(--success-deep);animation:statusPop .5s var(--bounce)}
+.q-feedback.bad{color:var(--red);animation:statusPop .5s var(--bounce)}
+@keyframes statusPop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.next-btn{
+  display:none;margin:16px auto 0;
+  font-weight:900;font-size:1.05rem;color:#fff;
+  background:var(--primary);
+  padding:16px 46px;border-radius:999px;
+  box-shadow:0 10px 24px rgba(98,118,217,.35);
+  transition:transform .2s var(--bounce);
+}
+.next-btn.show{display:block;animation:statusPop .5s var(--bounce)}
+.next-btn:hover{transform:translateY(-3px) scale(1.04)}
+.next-btn:active{transform:scale(1.08)}
+
+/* ============ AI 채팅 패널 ============ */
+.tutor-fab{position:fixed;right:26px;bottom:26px;z-index:60;display:none}
+.tutor-fab.show{display:flex}
+.tutor-btn{
+  width:76px;height:76px;border-radius:50%;
+  background:#fff;box-shadow:var(--shadow-lg);
+  display:grid;place-items:center;
+  animation:floaty 3.2s ease-in-out infinite;
+  transition:transform .2s var(--bounce);
+}
+.tutor-btn:hover{transform:scale(1.08)}
+.tutor-btn:active{transform:scale(1.12)}
+.tutor-btn img{width:54px;height:54px;object-fit:contain}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -9px}}
+.mascot-jump{animation:mascotJump .7s var(--bounce) !important}
+@keyframes mascotJump{0%,100%{translate:0 0}35%{translate:0 -30px}55%{translate:0 -22px}}
+.chat-panel{
+  position:fixed;right:26px;bottom:26px;z-index:59;
+  width:min(350px,calc(100vw - 48px));
+  background:var(--card);border-radius:26px;box-shadow:var(--shadow-lg);
+  overflow:hidden;display:none;flex-direction:column;
+}
+.chat-panel.open{display:flex;animation:fadeUp .35s var(--bounce)}
+.chat-head{
+  background:var(--mint-deep);padding:15px 18px;
+  display:flex;align-items:center;gap:11px;color:#fff;
+}
+.chat-head .mascot-mini{
+  width:42px;height:42px;background:#fff;border-radius:50%;
+  display:grid;place-items:center;flex:none;
+}
+.chat-head .t{font-weight:900;font-size:1rem}
+.chat-head small{display:block;font-size:.74rem;font-weight:500;opacity:.9}
+.chat-close{
+  margin-left:auto;width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,.2);display:grid;place-items:center;
+}
+.chat-close svg{width:14px;height:14px}
+.chat-body{padding:16px;display:flex;flex-direction:column;gap:10px;max-height:300px;overflow-y:auto}
+.msg{max-width:85%;padding:11px 15px;border-radius:18px;font-size:.88rem;font-weight:500;line-height:1.55}
+.msg.bot{background:var(--mint-bg);color:var(--ink);border-bottom-left-radius:6px;align-self:flex-start}
+.msg.me{background:var(--bg);color:var(--ink);border-bottom-right-radius:6px;align-self:flex-end}
+.chips{display:flex;gap:8px;padding:4px 16px 16px;flex-wrap:wrap}
+.chip{
+  background:#fff;border:2px solid var(--mint-deep);color:var(--mint-deep);
+  border-radius:999px;padding:11px 16px;font-size:.8rem;font-weight:900;min-height:44px;
+  transition:transform .18s var(--bounce),background .18s;
+}
+.chip:hover{transform:translateY(-2px);background:var(--mint-bg)}
+.chip:active{transform:scale(1.06)}
+
+/* ============ 셀레브레이션 ============ */
+.celebrate{
+  position:fixed;inset:0;z-index:80;display:none;place-items:center;
+  background:rgba(63,61,86,.5);backdrop-filter:blur(4px);
+}
+.celebrate.show{display:grid}
+.celebrate-card{
+  background:var(--card);border-radius:32px;padding:42px 54px;text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,.3);max-width:440px;width:calc(100% - 48px);
+  animation:celebIn .6s var(--bounce);
+}
+@keyframes celebIn{from{transform:scale(.4) rotate(-6deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.celebrate-card .stars{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin-bottom:12px}
+.celebrate-card .stars img{width:54px;height:54px;object-fit:contain;animation:starPop .6s var(--bounce) both}
+.celebrate-card .stars img:nth-child(2){width:88px;height:88px;animation-delay:.15s}
+.celebrate-card .stars img:nth-child(3){animation-delay:.3s}
+@keyframes starPop{from{transform:scale(0) rotate(-40deg)}to{transform:scale(1) rotate(0)}}
+.celebrate-card h2{font-size:1.7rem;font-weight:900}
+.celebrate-card .praise{margin-top:7px;font-size:.95rem;font-weight:500;color:var(--ink-soft)}
+.celebrate-mascot{
+  display:block;width:96px;height:96px;object-fit:contain;margin:14px auto 0;
+  animation:mascotJump 1s var(--bounce) .3s 2;
+}
+.xp-gain{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  width:fit-content;margin:12px auto 0;
+  background:var(--xp);color:var(--xp-deep);
+  font-weight:900;font-size:.78rem;
+  border-radius:999px;padding:6px 14px;
+  animation:statusPop .5s .5s var(--bounce) both;
+}
+.xp-gain svg{width:13px;height:13px}
+.celebrate-btn{
+  margin-top:16px;font-weight:900;font-size:1.02rem;color:#fff;
+  background:var(--primary);border-radius:999px;padding:16px 42px;
+  box-shadow:0 10px 24px rgba(98,118,217,.35);
+  transition:transform .2s var(--bounce);
+}
+.celebrate-btn:hover{transform:translateY(-3px) scale(1.04)}
+.celebrate-btn:active{transform:scale(1.08)}
+.confetti-canvas{position:fixed;inset:0;z-index:90;pointer-events:none}
+
+/* 토스트 */
+.toast{
+  position:fixed;left:50%;top:24px;translate:-50% -160%;z-index:70;
+  background:var(--ink);color:#fff;font-weight:700;font-size:.9rem;
+  border-radius:999px;padding:13px 26px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+  transition:translate .45s var(--bounce);
+}
+.toast.show{translate:-50% 0}
+
+/* ============ 반응형 ============ */
+@media (max-width:1120px){
+  .grid{grid-template-columns:1fr}
+  /* 단일 컬럼에서는 화면비 기반으로 복귀 */
+  .video-card{flex:none;aspect-ratio:16/10;min-height:0}
+  .task-panel{flex:none}
+}
+@media (max-width:640px){
+  .app{padding:16px 16px 110px;gap:0}
+  .sidebar{
+    position:fixed;left:12px;right:12px;bottom:12px;top:auto;z-index:62;
+    width:auto;height:auto;min-height:0;
+    flex-direction:row;justify-content:space-around;
+    padding:8px 6px;border-radius:24px;gap:0;
+  }
+  .side-logo-wrap,.logout{display:none}
+  .nav-item{width:auto;padding:8px 8px;gap:4px;font-size:.64rem;white-space:nowrap}
+  .nav-item.active .nav-ico{width:48px;height:40px;border-radius:14px}
+  .nav-item .nav-ico{width:48px;height:28px}
+  .greet h1{font-size:1.3rem}
+  .greet-right{gap:12px}
+  .xp-bar{width:110px}
+  .me-chip .name{display:none}
+  .video-card{aspect-ratio:16/11}
+  .ctrl{width:50px;height:50px}
+  .controls{gap:12px;bottom:14px}
+  .teacher-bar{padding:15px 18px}
+  .chat-open-btn{margin-left:0;width:100%;justify-content:center}
+  .char-btn img{width:56px;height:56px}
+  .quiz-card{padding:28px 20px}
+  .answers{grid-template-columns:1fr}
+  .q-text{font-size:1.25rem}
+  .mn-cell{width:32px;height:32px;font-size:.95rem}
+  .tutor-fab{right:14px;bottom:118px}
+  .tutor-btn{width:60px;height:60px}
+  .tutor-btn img{width:42px;height:42px}
+  .chat-panel{right:14px;bottom:118px}
+}
+
+/* 모션 최소화 존중 */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SVG 심볼 ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- 아이 얼굴 -->
+    <g id="kid-base">
+      <circle cx="50" cy="54" r="30" fill="#FFDFC4"/>
+      <circle cx="40" cy="54" r="4" fill="#3F3D56"/>
+      <circle cx="60" cy="54" r="4" fill="#3F3D56"/>
+      <path d="M43 65 Q50 71 57 65" stroke="#3F3D56" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="33" cy="62" rx="4.5" ry="3" fill="#FFB8C1" opacity=".8"/>
+      <ellipse cx="67" cy="62" rx="4.5" ry="3" fill="#FFB8C1" opacity=".8"/>
+    </g>
+    <g id="kid1"><use href="#kid-base"/><path d="M22 48 Q24 22 50 22 Q76 22 78 48 Q70 32 50 32 Q30 32 22 48Z" fill="#4A3223"/></g>
+    <g id="kid2"><use href="#kid-base"/><path d="M22 50 Q22 20 50 22 Q78 20 78 50 Q74 30 50 30 Q26 30 22 50Z" fill="#2B2B2B"/><circle cx="26" cy="52" r="7" fill="#2B2B2B"/><circle cx="74" cy="52" r="7" fill="#2B2B2B"/></g>
+    <g id="kid3"><use href="#kid-base"/><path d="M24 46 Q28 20 50 22 Q72 20 76 46 L70 34 Q60 28 50 30 Q38 28 30 36Z" fill="#8B5A3C"/></g>
+    <g id="kid4"><use href="#kid-base"/><path d="M22 48 Q24 20 50 22 Q76 20 78 48 Q72 30 50 31 Q28 30 22 48Z" fill="#5C4033"/><path d="M40 22 L44 12 L48 22Z" fill="#5C4033"/></g>
+    <g id="kid-me"><use href="#kid-base"/><path d="M22 50 Q20 22 50 22 Q80 22 78 50 Q72 30 50 32 Q28 30 22 50Z" fill="#3D2B1F"/><circle cx="30" cy="34" r="5" fill="#FF8FA3"/></g>
+    <!-- 아이콘 -->
+    <path id="ic-home" d="M11 3.2a1.6 1.6 0 0 1 2 0l7.6 6.1a1.6 1.6 0 0 1 .6 1.3V19a2 2 0 0 1-2 2h-4v-5.4a1.2 1.2 0 0 0-2.4 0V21h-4a2 2 0 0 1-2-2v-8.4c0-.5.2-1 .6-1.3L11 3.2Z"/>
+    <path id="ic-friends" d="M9 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm6.5 1a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 15.5 12ZM2 19a7 7 0 0 1 14 0v2H2v-2Zm16 2v-1.6a8.9 8.9 0 0 0-1.8-5.4A5.5 5.5 0 0 1 22 19.4V21h-4Z"/>
+    <g id="ic-aichat">
+      <path d="M4 4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2v3.2a.8.8 0 0 0 1.3.6L11.5 16H18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4Z"/>
+      <circle cx="8" cy="10" r="1.4" fill="#fff" class="dot"/>
+      <circle cx="14" cy="10" r="1.4" fill="#fff" class="dot"/>
+    </g>
+    <path id="ic-chart" d="M4 20a1.5 1.5 0 0 1-1.5-1.5v-5a1.5 1.5 0 0 1 3 0v5A1.5 1.5 0 0 1 4 20Zm6 0a1.5 1.5 0 0 1-1.5-1.5V5.5a1.5 1.5 0 0 1 3 0v13A1.5 1.5 0 0 1 10 20Zm6 0a1.5 1.5 0 0 1-1.5-1.5V10a1.5 1.5 0 0 1 3 0v8.5A1.5 1.5 0 0 1 16 20Z"/>
+    <path id="ic-gear" d="M10.6 2.6a2 2 0 0 1 2.8 0l.9.9c.3.3.8.5 1.2.4l1.2-.2a2 2 0 0 1 2.2 1.6l.2 1.2c.1.4.4.8.8 1l1.1.5a2 2 0 0 1 .9 2.7l-.6 1.1a1.6 1.6 0 0 0 0 1.4l.6 1.1a2 2 0 0 1-.9 2.7l-1.1.5c-.4.2-.7.6-.8 1l-.2 1.2a2 2 0 0 1-2.2 1.6l-1.2-.2c-.4-.1-.9.1-1.2.4l-.9.9a2 2 0 0 1-2.8 0l-.9-.9a1.6 1.6 0 0 0-1.2-.4l-1.2.2a2 2 0 0 1-2.2-1.6l-.2-1.2c-.1-.4-.4-.8-.8-1l-1.1-.5a2 2 0 0 1-.9-2.7l.6-1.1c.2-.4.2-1 0-1.4l-.6-1.1a2 2 0 0 1 .9-2.7l1.1-.5c.4-.2.7-.6.8-1l.2-1.2a2 2 0 0 1 2.2-1.6l1.2.2c.4.1.9-.1 1.2-.4l.9-.9ZM12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/>
+    <path id="ic-logout" d="M10 3.5a1 1 0 0 1 0 2H6a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h4a1 1 0 0 1 0 2H6A2.5 2.5 0 0 1 3.5 18V6A2.5 2.5 0 0 1 6 3.5h4Zm5.3 4.2a1 1 0 0 1 1.4 0l3.6 3.6a1 1 0 0 1 0 1.4l-3.6 3.6a1 1 0 0 1-1.4-1.4l1.9-1.9H9a1 1 0 0 1 0-2h8.2l-1.9-1.9a1 1 0 0 1 0-1.4Z"/>
+    <path id="ic-mic" d="M12 2a3.5 3.5 0 0 1 3.5 3.5v5a3.5 3.5 0 0 1-7 0v-5A3.5 3.5 0 0 1 12 2Zm-6 8.3a1 1 0 0 1 2 .1 4 4 0 0 0 8 0 1 1 0 0 1 2-.1 6 6 0 0 1-5 5.6V19h2.5a1 1 0 1 1 0 2h-7a1 1 0 1 1 0-2H11v-3.1a6 6 0 0 1-5-5.6Z"/>
+    <path id="ic-cam" d="M3 7.5A2.5 2.5 0 0 1 5.5 5h8A2.5 2.5 0 0 1 16 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 3 16.5v-9Zm14 2.6 3.2-2.3a1 1 0 0 1 1.6.8v6.8a1 1 0 0 1-1.6.8L17 13.9v-3.8Z"/>
+    <path id="ic-hand" d="M8.5 3.6a1.3 1.3 0 0 1 2.6 0V10h.8V2.8a1.3 1.3 0 0 1 2.6 0V10h.8V4.2a1.3 1.3 0 0 1 2.6 0v8.3c0 4.1-2.7 7-6.5 7-3.4 0-5.4-1.8-6.7-5.1l-1.4-3.6a1.25 1.25 0 0 1 2.3-.9l1 2.3c.2.4.9.3.9-.2V3.6Z"/>
+    <path id="ic-star" d="M12 2.5l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 8.8l6.1-.7L12 2.5Z"/>
+    <path id="ic-check" d="M4.5 12.7l4.6 4.6L19.5 6.9a1.4 1.4 0 0 1 2 2L10.2 20.2a1.6 1.6 0 0 1-2.2 0l-5.5-5.5a1.4 1.4 0 0 1 2-2Z"/>
+    <path id="ic-checklist" d="M8 3h8a1 1 0 0 1 1 1v1h1.5A1.5 1.5 0 0 1 20 6.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5v-13A1.5 1.5 0 0 1 5.5 5H7V4a1 1 0 0 1 1-1Zm-.6 9.4-1.2 1.2 2.6 2.6 4.6-4.6-1.2-1.2-3.4 3.4Z"/>
+    <path id="ic-close" d="M6.2 4.8 12 10.6l5.8-5.8a1 1 0 0 1 1.4 1.4L13.4 12l5.8 5.8a1 1 0 0 1-1.4 1.4L12 13.4l-5.8 5.8a1 1 0 0 1-1.4-1.4L10.6 12 4.8 6.2a1 1 0 0 1 1.4-1.4Z"/>
+    <path id="ic-back" d="M14.5 5.5 8 12l6.5 6.5a1.2 1.2 0 0 1-1.7 1.7l-7.3-7.3a1.3 1.3 0 0 1 0-1.8l7.3-7.3a1.2 1.2 0 0 1 1.7 1.7Z"/>
+    <path id="ic-chev-r" d="M9.5 5.5 16 12l-6.5 6.5a1.2 1.2 0 0 0 1.7 1.7l7.3-7.3a1.3 1.3 0 0 0 0-1.8L11.2 3.8a1.2 1.2 0 0 0-1.7 1.7Z"/>
+    <path id="ic-chev-d" d="M5.5 9.5 12 16l6.5-6.5a1.2 1.2 0 0 0-1.7-1.7L12 12.6 7.2 7.8a1.2 1.2 0 0 0-1.7 1.7Z"/>
+    <g id="ic-play"><circle cx="12" cy="12" r="10"/><path d="M10 8.2v7.6a.7.7 0 0 0 1.1.6l5.6-3.8a.7.7 0 0 0 0-1.2l-5.6-3.8a.7.7 0 0 0-1.1.6Z" fill="#fff"/></g>
+    <g id="ic-chatline">
+      <path d="M4 4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2v3.2a.8.8 0 0 0 1.3.6L11.5 16H18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4Z"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="app">
+  <!-- ============ 사이드바 ============ -->
+  <nav class="sidebar" aria-label="주 메뉴">
+    <span class="side-logo-wrap" aria-hidden="true">
+      <img class="side-logo" src="assets/ch2.png" alt="">
+    </span>
+    <button class="nav-item active" id="navHome" aria-current="page">
+      <span class="nav-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M11 3.2a1.6 1.6 0 0 1 2 0l7.6 6.1a1.6 1.6 0 0 1 .6 1.3V19a2 2 0 0 1-2 2h-4v-5.4a1.2 1.2 0 0 0-2.4 0V21h-4a2 2 0 0 1-2-2v-8.4c0-.5.2-1 .6-1.3L11 3.2Z"/></svg></span>
+      홈
+    </button>
+    <button class="nav-item" id="navGroup">
+      <span class="nav-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M9 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm6.5 1a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 15.5 12ZM2 19a7 7 0 0 1 14 0v2H2v-2Zm16 2v-1.6a8.9 8.9 0 0 0-1.8-5.4A5.5 5.5 0 0 1 22 19.4V21h-4Z"/></svg></span>
+      우리 모둠
+    </button>
+    <button class="nav-item" id="navAI">
+      <span class="nav-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M4 4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2v3.2a.8.8 0 0 0 1.3.6L11.5 16H18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4Zm4 7.4a1.4 1.4 0 1 1 0-2.8 1.4 1.4 0 0 1 0 2.8Zm6 0a1.4 1.4 0 1 1 0-2.8 1.4 1.4 0 0 1 0 2.8Z"/></svg></span>
+      AI와 대화
+    </button>
+    <button class="nav-item" id="navGrowth">
+      <span class="nav-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M4 20a1.5 1.5 0 0 1-1.5-1.5v-5a1.5 1.5 0 0 1 3 0v5A1.5 1.5 0 0 1 4 20Zm6 0a1.5 1.5 0 0 1-1.5-1.5V5.5a1.5 1.5 0 0 1 3 0v13A1.5 1.5 0 0 1 10 20Zm6 0a1.5 1.5 0 0 1-1.5-1.5V10a1.5 1.5 0 0 1 3 0v8.5A1.5 1.5 0 0 1 16 20Z"/></svg></span>
+      내가 성장한 기록
+    </button>
+    <button class="nav-item" id="navSettings">
+      <span class="nav-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M10.6 2.6a2 2 0 0 1 2.8 0l.9.9c.3.3.8.5 1.2.4l1.2-.2a2 2 0 0 1 2.2 1.6l.2 1.2c.1.4.4.8.8 1l1.1.5a2 2 0 0 1 .9 2.7l-.6 1.1a1.6 1.6 0 0 0 0 1.4l.6 1.1a2 2 0 0 1-.9 2.7l-1.1.5c-.4.2-.7.6-.8 1l-.2 1.2a2 2 0 0 1-2.2 1.6l-1.2-.2c-.4-.1-.9.1-1.2.4l-.9.9a2 2 0 0 1-2.8 0l-.9-.9a1.6 1.6 0 0 0-1.2-.4l-1.2.2a2 2 0 0 1-2.2-1.6l-.2-1.2c-.1-.4-.4-.8-.8-1l-1.1-.5a2 2 0 0 1-.9-2.7l.6-1.1c.2-.4.2-1 0-1.4l-.6-1.1a2 2 0 0 1 .9-2.7l1.1-.5c.4-.2.7-.6.8-1l.2-1.2a2 2 0 0 1 2.2-1.6l1.2.2c.4.1.9-.1 1.2-.4l.9-.9ZM12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/></svg></span>
+      설정
+    </button>
+    <button class="logout" id="logoutBtn">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-logout" fill="currentColor"/></svg>
+      로그아웃
+    </button>
+  </nav>
+
+  <!-- ============ 콘텐츠 ============ -->
+  <div class="content">
+    <div class="greet-row">
+      <div class="greet">
+        <h1>안녕, 말랑아!</h1>
+        <p>오늘도 우리 함께 공부해보자!</p>
+      </div>
+      <div class="greet-right">
+        <div class="xp-block">
+          <img class="star" src="assets/ch1-2.png" alt="" aria-hidden="true">
+          <div class="xp-info">
+            <div class="xp-label">칭찬 점수</div>
+            <div class="xp-num" id="xpNum">480 / 1000 XP</div>
+            <div class="xp-bar" role="progressbar" aria-label="칭찬 점수" aria-valuenow="48" aria-valuemin="0" aria-valuemax="100">
+              <div class="xp-fill" id="xpFill"></div>
+            </div>
+          </div>
+        </div>
+        <div class="me-chip">
+          <span class="avatar" aria-hidden="true"><img src="assets/ch1-2.png" alt=""></span>
+          <span class="name">말랑이</span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-chev-d" fill="#6F7683"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 교실 화면 ============ -->
+    <div class="grid" id="classroomView">
+      <section class="main-col" aria-label="선생님 실시간 방송">
+        <div class="video-card">
+          <!-- 선생님 방송 화면 -->
+          <img class="scene" src="assets/screen.png" alt="김하늘 선생님이 손을 흔들며 인사하는 모습">
+
+          <span class="live-chip">
+            <span class="badge"><span class="live-dot" aria-hidden="true"></span>LIVE</span>
+            <span class="live-time" id="liveTime">12:34</span>
+          </span>
+          <button class="fullscreen-btn" id="fullscreenBtn" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M4 9a1.5 1.5 0 0 1-1.5-1.5V4A1.5 1.5 0 0 1 4 2.5h3.5a1.5 1.5 0 0 1 0 3H5.5v2A1.5 1.5 0 0 1 4 9Zm16 0a1.5 1.5 0 0 1-1.5-1.5v-2h-2a1.5 1.5 0 0 1 0-3H20a1.5 1.5 0 0 1 1.5 1.5v3.5A1.5 1.5 0 0 1 20 9ZM4 15a1.5 1.5 0 0 1 1.5 1.5v2h2a1.5 1.5 0 0 1 0 3H4a1.5 1.5 0 0 1-1.5-1.5v-3.5A1.5 1.5 0 0 1 4 15Zm16 0a1.5 1.5 0 0 1 1.5 1.5V20a1.5 1.5 0 0 1-1.5 1.5h-3.5a1.5 1.5 0 0 1 0-3h2v-2A1.5 1.5 0 0 1 20 15Z"/></svg>
+            <span id="fullscreenLabel">전체 화면</span>
+          </button>
+          <div class="controls">
+            <button class="ctrl" id="micBtn" aria-label="마이크 끄기" aria-pressed="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path class="fill" d="M12 2a3.5 3.5 0 0 1 3.5 3.5v5a3.5 3.5 0 0 1-7 0v-5A3.5 3.5 0 0 1 12 2Zm-6 8.3a1 1 0 0 1 2 .1 4 4 0 0 0 8 0 1 1 0 0 1 2-.1 6 6 0 0 1-5 5.6V19h2.5a1 1 0 1 1 0 2h-7a1 1 0 1 1 0-2H11v-3.1a6 6 0 0 1-5-5.6Z"/>
+                <line class="slash" x1="3" y1="21" x2="21" y2="3"/>
+              </svg>
+            </button>
+            <button class="ctrl" id="camBtn" aria-label="카메라 끄기" aria-pressed="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path class="fill" d="M3 7.5A2.5 2.5 0 0 1 5.5 5h8A2.5 2.5 0 0 1 16 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 3 16.5v-9Zm14 2.6 3.2-2.3a1 1 0 0 1 1.6.8v6.8a1 1 0 0 1-1.6.8L17 13.9v-3.8Z"/>
+                <line class="slash" x1="3" y1="21" x2="21" y2="3"/>
+              </svg>
+            </button>
+            <button class="ctrl" id="handBtn" aria-label="손들기">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M8.5 3.6a1.3 1.3 0 0 1 2.6 0V10h.8V2.8a1.3 1.3 0 0 1 2.6 0V10h.8V4.2a1.3 1.3 0 0 1 2.6 0v8.3c0 4.1-2.7 7-6.5 7-3.4 0-5.4-1.8-6.7-5.1l-1.4-3.6a1.25 1.25 0 0 1 2.3-.9l1 2.3c.2.4.9.3.9-.2V3.6Z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="teacher-bar" id="teacherBar">
+          <div>
+            <div class="t-name">김하늘 선생님</div>
+            <div class="t-sub">지금 「봄비」 함께 읽는 중</div>
+          </div>
+          <button class="chat-open-btn" id="chatOpenBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-chatline" fill="currentColor"/></svg>
+            채팅 열기
+          </button>
+        </div>
+
+        <!-- 캐릭터 (임시 배치) — 클릭하면 AI 말랑이와 대화 시작 -->
+        <div class="char-panel">
+          <div class="char-strip" id="charStrip">
+            <button class="char-btn" aria-label="말랑이와 대화하기"><img src="assets/ch1.png" alt=""></button>
+            <button class="char-btn" aria-label="말랑이와 대화하기"><img src="assets/ch1-1.png" alt=""></button>
+            <button class="char-btn" aria-label="말랑이와 대화하기"><img src="assets/ch1-2.png" alt=""></button>
+            <button class="char-btn" aria-label="말랑이와 대화하기"><img src="assets/ch1-3.png" alt=""></button>
+            <button class="char-btn" aria-label="말랑이와 대화하기"><img src="assets/ch2.png" alt=""></button>
+            <button class="char-btn" aria-label="말랑이와 대화하기"><img src="assets/image%2020.png" alt=""></button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 오른쪽: 오늘의 과제 + AI 말랑이 -->
+      <aside class="right-col">
+        <div class="task-panel" aria-label="오늘의 과제">
+          <div class="task-head">
+            <div>
+              <h2>오늘의 과제</h2>
+              <p class="t-count" id="taskCount">3개 중 1개 완료!</p>
+            </div>
+            <img class="task-art" src="assets/Rectangle.png" alt="" aria-hidden="true">
+          </div>
+          <div class="task-row done" id="taskRow1">
+            <span class="t-num" aria-label="완료됨">1</span>
+            <div class="t-info">
+              <div class="t-title">1. 시 읽기</div>
+              <div class="t-sub">봄비 함께 읽어보기</div>
+            </div>
+            <button class="t-btn replay" id="replay1">
+              다시 보기
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-play" fill="#7A5200"/></svg>
+            </button>
+          </div>
+          <div class="task-row next" id="taskRow2">
+            <span class="t-num">2</span>
+            <div class="t-info">
+              <div class="t-title">2. 문제 풀기<span class="next-flag" id="nextFlag2">다음 순서예요</span></div>
+              <div class="t-sub">내용 확인 문제 풀기</div>
+            </div>
+            <button class="t-btn start" id="startQuizBtn">시작하기</button>
+          </div>
+          <div class="task-row" id="taskRow3">
+            <span class="t-num">3</span>
+            <div class="t-info">
+              <div class="t-title">3. AI와 대화</div>
+              <div class="t-sub">봄비에 대해 이야기해요</div>
+            </div>
+            <button class="t-btn start" id="startChatBtn">시작하기</button>
+          </div>
+
+          <button class="all-tasks" id="allTasksBtn">
+            모든 과제 보기
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-chev-r" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ============ 퀴즈 화면 ============ -->
+    <section class="quiz" id="quizView" aria-label="국어 문제 풀기">
+      <div class="quiz-top">
+        <button class="back-btn" id="backBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-back" fill="currentColor"/></svg>
+          교실로
+        </button>
+        <div class="quiz-dots" aria-label="문제 진행도">
+          <span class="qdot now" id="dot0"></span>
+          <span class="qdot" id="dot1"></span>
+          <span class="qdot" id="dot2"></span>
+        </div>
+      </div>
+      <div class="quiz-card">
+        <span class="q-label" id="qLabel">문제 1</span>
+        <h2 class="q-text" id="qText"></h2>
+        <div class="q-passage" id="qPassage" hidden aria-label="시 지문"></div>
+        <div class="answers" id="answers"></div>
+        <p class="q-feedback" id="qFeedback" role="status" aria-live="polite"></p>
+        <button class="next-btn" id="nextBtn">다음 문제</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ============ AI 튜터 (퀴즈 화면 전용 플로팅) ============ -->
+<div class="tutor-fab" id="tutorFab">
+  <button class="tutor-btn" id="tutorBtn" aria-label="AI 튜터 말랑이와 대화하기" aria-expanded="false">
+    <img src="assets/ch2.png" alt="" aria-hidden="true">
+  </button>
+</div>
+
+<div class="chat-panel" id="chatPanel" role="dialog" aria-label="AI 튜터 말랑이와의 대화">
+  <div class="chat-head">
+    <span class="mascot-mini" aria-hidden="true">
+      <img src="assets/ch2.png" alt="" width="30" height="30">
+    </span>
+    <div>
+      <span class="t">AI 튜터 말랑이</span>
+      <small>언제든지 도와줄게!</small>
+    </div>
+    <button class="chat-close" id="chatClose" aria-label="대화창 닫기">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-close" fill="#fff"/></svg>
+    </button>
+  </div>
+  <div class="chat-body" id="chatBody">
+    <div class="msg bot">안녕, 말랑아! 나는 말랑이야. 시 「봄비」 재밌었지? 궁금한 건 뭐든지 물어봐!</div>
+  </div>
+  <div class="chips" id="chatChips">
+    <button class="chip" data-q="hint">힌트 줘!</button>
+    <button class="chip" data-q="poem">봄비가 무슨 뜻이야?</button>
+    <button class="chip" data-q="cheer">응원해 줘!</button>
+  </div>
+</div>
+
+<!-- ============ 셀레브레이션 ============ -->
+<div class="celebrate" id="celebrate" role="dialog" aria-label="과제 완료 축하">
+  <div class="celebrate-card">
+    <div class="stars" aria-hidden="true">
+      <img src="assets/ch1-2.png" alt="">
+      <img src="assets/ch1-2.png" alt="">
+      <img src="assets/ch1-2.png" alt="">
+    </div>
+    <h2>과제 완료! 최고야!</h2>
+    <p class="praise">국어 문제 3개를 모두 풀었어. 정말 대단한걸?</p>
+    <img class="celebrate-mascot" src="assets/ch2.png" alt="" aria-hidden="true">
+    <span class="xp-gain">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-star" fill="#6B4700"/></svg>
+      +30 XP
+    </span>
+    <button class="celebrate-btn" id="celebrateBtn">교실로 돌아가기</button>
+  </div>
+</div>
+
+<canvas class="confetti-canvas" id="confettiCanvas" aria-hidden="true"></canvas>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ============ 화면 크기에 맞춰 전체 UI 균일 확대/축소 ============
+   F11 등으로 창(뷰포트)이 커지면, 특정 카드 안 여백만 늘어나는 대신
+   글자·이미지·여백·카드까지 전부 같은 비율로 커지도록 zoom을 적용 */
+const ZOOM_BASE_W = 1280;
+const ZOOM_BASE_H = 800;
+const ZOOM_MIN = 0.85;
+const ZOOM_MAX = 1.6;
+function applyResponsiveZoom() {
+  /* zoom이 걸린 채로 innerWidth를 재면 zoom값 자체가 측정에 영향을 줘서
+     순환 참조가 생기므로, 먼저 1배로 리셋한 뒤 진짜 뷰포트 크기를 잰다 */
+  document.body.style.zoom = "";
+  const w = innerWidth, h = innerHeight;
+  if (w <= 640) return; /* 모바일 레이아웃은 별도 처리, 확대 제외 */
+  const ratio = Math.min(w / ZOOM_BASE_W, h / ZOOM_BASE_H);
+  const clamped = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, ratio));
+  document.body.style.zoom = clamped.toFixed(3);
+}
+applyResponsiveZoom();
+addEventListener("resize", applyResponsiveZoom);
+
+/* ============ 수업 타이머 ============ */
+let liveSec = 754;
+setInterval(() => {
+  liveSec++;
+  const h = Math.floor(liveSec / 3600);
+  const m = String(Math.floor((liveSec % 3600) / 60)).padStart(2, "0");
+  const s = String(liveSec % 60).padStart(2, "0");
+  $("liveTime").textContent = h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+}, 1000);
+
+/* ============ 화상 컨트롤 ============ */
+function toggleCtrl(btn, onLabel, offLabel) {
+  const off = btn.classList.toggle("off");
+  btn.setAttribute("aria-pressed", String(!off));
+  btn.setAttribute("aria-label", off ? offLabel : onLabel);
+}
+$("micBtn").addEventListener("click", () => toggleCtrl($("micBtn"), "마이크 끄기", "마이크 켜기"));
+$("camBtn").addEventListener("click", () => toggleCtrl($("camBtn"), "카메라 끄기", "카메라 켜기"));
+$("handBtn").addEventListener("click", () => {
+  const b = $("handBtn");
+  b.classList.remove("hand-up");
+  void b.offsetWidth;
+  b.classList.add("hand-up");
+  showToast("손을 들었어요! 선생님이 곧 불러줄 거예요");
+  setTimeout(() => b.classList.remove("hand-up"), 1200);
+});
+
+/* ============ 전체 화면 (표준 + 구형 웹킷 접두사 대응) ============ */
+const videoCardEl = document.querySelector(".video-card");
+function getFullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement ||
+    document.mozFullScreenElement || document.msFullscreenElement || null;
+}
+function requestFS(el) {
+  const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  return fn ? fn.call(el) : Promise.reject(new Error("전체 화면 API를 지원하지 않아요"));
+}
+function exitFS() {
+  const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+  return fn ? fn.call(document) : Promise.resolve();
+}
+$("fullscreenBtn").addEventListener("click", () => {
+  if (!getFullscreenElement()) {
+    Promise.resolve(requestFS(videoCardEl)).catch(() => showToast("이 기기에서는 전체 화면을 지원하지 않아요"));
+  } else {
+    exitFS();
+  }
+});
+function onFullscreenChange() {
+  const isFull = getFullscreenElement() === videoCardEl;
+  $("fullscreenBtn").setAttribute("aria-pressed", String(isFull));
+  $("fullscreenLabel").textContent = isFull ? "화면 나가기" : "전체 화면";
+  /* 전체 화면 진입 시 선생님 바 + 캐릭터 줄을 영상 안으로 옮겨 하단 빈 공간을 채우고, 나가면 원래 자리로 복귀 */
+  const teacherBarEl = $("teacherBar");
+  const charPanelEl = document.querySelector(".char-panel");
+  if (isFull) {
+    videoCardEl.appendChild(teacherBarEl);
+    videoCardEl.appendChild(charPanelEl);
+  } else {
+    videoCardEl.insertAdjacentElement("afterend", teacherBarEl);
+    teacherBarEl.insertAdjacentElement("afterend", charPanelEl);
+  }
+}
+["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "MSFullscreenChange"].forEach((ev) =>
+  document.addEventListener(ev, onFullscreenChange)
+);
+
+/* ============ 토스트 ============ */
+let toastTimer;
+function showToast(text) {
+  const t = $("toast");
+  t.textContent = text;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* ============ 사이드바 내비 ============ */
+$("navHome").addEventListener("click", () => window.scrollTo({ top: 0 }));
+$("navGroup").addEventListener("click", () => showToast("우리 모둠 보기는 준비 중이에요!"));
+$("navAI").addEventListener("click", () => openChat(true));
+$("navGrowth").addEventListener("click", () => showToast("성장 기록은 준비 중이에요!"));
+$("navSettings").addEventListener("click", () => showToast("설정은 준비 중이에요!"));
+$("logoutBtn").addEventListener("click", () => showToast("로그아웃은 데모에서 지원하지 않아요"));
+$("allTasksBtn").addEventListener("click", () => showToast("전체 과제 목록은 준비 중이에요!"));
+$("replay1").addEventListener("click", () => showToast("선생님이 읽어주신 「봄비」 다시 보기는 준비 중이에요!"));
+
+/* ============ 퀴즈 데이터 ============ */
+const QUESTIONS = [
+  {
+    text: "비가 조용히 내리는 모습을 흉내 내는 말은 무엇일까요?",
+    passage: "보슬보슬 봄비가 와요 / 새싹들이 쏙쏙 고개를 들어요",
+    answers: ["보슬보슬", "반짝반짝", "폴짝폴짝", "데굴데굴"],
+    correct: 0,
+    hint: "시의 첫 줄을 다시 읽어봐! 비가 내리는 소리를 흉내 낸 말이 숨어 있어.",
+  },
+  {
+    text: "다음 중 맞춤법이 바른 문장은 무엇일까요?",
+    passage: null,
+    answers: [
+      "오늘은 날씨가 참 맑다.",
+      "오늘은 날시가 참 맑다.",
+      "오늘은 날씨가 참 말따.",
+      "오늘은 낟씨가 참 맑다.",
+    ],
+    correct: 0,
+    hint: "'날씨'와 '맑다'를 어떻게 쓰는지 잘 살펴봐!",
+  },
+  {
+    text: "「봄비」에서 새싹들은 봄비를 맞고 어떻게 했나요?",
+    passage: "보슬보슬 봄비가 와요 / 새싹들이 쏙쏙 고개를 들어요",
+    answers: [
+      "쏙쏙 고개를 들었어요",
+      "쿨쿨 잠을 잤어요",
+      "훨훨 날아갔어요",
+      "꽁꽁 숨었어요",
+    ],
+    correct: 0,
+    hint: "봄비가 오면 새싹들이 땅에서 어떻게 될까? 시의 둘째 줄에 답이 있어!",
+  },
+];
+const PRAISE = ["정답이야! 정말 대단해! 🌟", "우와, 맞았어! 천재인걸?", "딩동댕! 완벽해!"];
+const ENCOURAGE = ["괜찮아, 다시 한번 생각해 보자!", "아깝다! 한 번 더 해볼까?", "힌트가 필요하면 말랑이를 불러 줘!"];
+
+let qIndex = 0;
+let quizDone = false;
+let chatTaskDone = false;
+let doneCount = 1;
+let xp = 480;
+
+function updateTaskCount() {
+  $("taskCount").textContent = doneCount >= 3 ? "오늘 과제 전부 완료! 🎉" : `3개 중 ${doneCount}개 완료!`;
+}
+function setXP(v) {
+  xp = v;
+  $("xpNum").textContent = `${xp} / 1000 XP`;
+  $("xpFill").style.width = `${Math.round(xp / 10)}%`;
+  document.querySelector(".xp-bar").setAttribute("aria-valuenow", String(Math.round(xp / 10)));
+}
+
+/* ============ 화면 전환 ============ */
+$("startQuizBtn").addEventListener("click", () => {
+  if (quizDone) return;
+  $("classroomView").style.display = "none";
+  $("quizView").classList.add("active");
+  $("tutorFab").classList.add("show");
+  qIndex = 0;
+  renderQuestion();
+});
+$("backBtn").addEventListener("click", backToClassroom);
+function backToClassroom() {
+  $("quizView").classList.remove("active");
+  $("classroomView").style.display = "";
+  $("tutorFab").classList.remove("show");
+  openChat(false);
+}
+
+/* ============ 원고지 지문 ============ */
+function renderPassage(text) {
+  const wrap = $("qPassage");
+  wrap.innerHTML = "";
+  for (const line of text.split(" / ")) {
+    const row = document.createElement("div");
+    row.className = "mn-row";
+    for (const ch of line) {
+      const cell = document.createElement("span");
+      cell.className = "mn-cell";
+      cell.textContent = ch === " " ? "" : ch;
+      row.appendChild(cell);
+    }
+    wrap.appendChild(row);
+  }
+}
+
+/* ============ 문제 렌더링 ============ */
+function renderQuestion() {
+  const q = QUESTIONS[qIndex];
+  $("qLabel").textContent = `문제 ${qIndex + 1}`;
+  $("qText").textContent = q.text;
+  if (q.passage) {
+    $("qPassage").hidden = false;
+    renderPassage(q.passage);
+  } else {
+    $("qPassage").hidden = true;
+  }
+  const keys = ["가", "나", "다", "라"];
+  $("answers").innerHTML = "";
+  q.answers.forEach((ans, i) => {
+    const b = document.createElement("button");
+    b.className = "ans";
+    b.innerHTML = `<span class="key" aria-hidden="true">${keys[i]}</span><span>${ans}</span>`;
+    b.addEventListener("click", () => pickAnswer(b, i));
+    $("answers").appendChild(b);
+  });
+  $("qFeedback").textContent = "";
+  $("qFeedback").className = "q-feedback";
+  $("nextBtn").classList.remove("show");
+  document.querySelectorAll(".qdot").forEach((d, i) => {
+    d.className = "qdot" + (i < qIndex ? " ok" : i === qIndex ? " now" : "");
+  });
+}
+
+function pickAnswer(btn, i) {
+  const q = QUESTIONS[qIndex];
+  if (i === q.correct) {
+    btn.classList.add("correct");
+    document.querySelectorAll(".ans").forEach((a) => (a.disabled = true));
+    $("qFeedback").textContent = PRAISE[qIndex % PRAISE.length];
+    $("qFeedback").className = "q-feedback good";
+    $(`dot${qIndex}`).className = "qdot ok";
+    mascotJump();
+    burstConfetti(100);
+    if (qIndex < QUESTIONS.length - 1) {
+      $("nextBtn").textContent = "다음 문제";
+      $("nextBtn").classList.add("show");
+    } else {
+      setTimeout(finishQuiz, 900);
+    }
+  } else {
+    btn.classList.add("wrong");
+    btn.disabled = true;
+    $("qFeedback").textContent = ENCOURAGE[Math.floor(Math.random() * ENCOURAGE.length)];
+    $("qFeedback").className = "q-feedback bad";
+    setTimeout(() => { btn.classList.remove("wrong"); btn.classList.add("tried"); }, 600);
+  }
+}
+$("nextBtn").addEventListener("click", () => { qIndex++; renderQuestion(); });
+
+/* ============ 완료 셀레브레이션 ============ */
+function finishQuiz() {
+  quizDone = true;
+  $("celebrate").classList.add("show");
+  rainConfetti();
+  setXP(xp + 30);
+}
+$("celebrateBtn").addEventListener("click", () => {
+  $("celebrate").classList.remove("show");
+  backToClassroom();
+  /* 과제 2번 완료 처리 */
+  const row = $("taskRow2");
+  row.classList.add("done");
+  row.classList.remove("next");
+  row.querySelector(".t-num").setAttribute("aria-label", "완료됨");
+  $("nextFlag2")?.remove();
+  $("startQuizBtn").outerHTML =
+    `<button class="t-btn replay" id="replay2">다시 보기 <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16"><use href="#ic-play" fill="#7A5200"/></svg></button>`;
+  $("replay2").addEventListener("click", () => showToast("이미 다 풀었어! 내일 새 문제가 올라와요"));
+  doneCount++;
+  updateTaskCount();
+  $("taskRow3").classList.add("next");
+  showToast("+30 XP를 받았어요!");
+});
+
+/* ============ 마스코트 점프 ============ */
+function mascotJump() {
+  const b = $("tutorBtn");
+  b.classList.remove("mascot-jump");
+  void b.offsetWidth;
+  b.classList.add("mascot-jump");
+  setTimeout(() => b.classList.remove("mascot-jump"), 800);
+}
+
+/* ============ AI 튜터 채팅 ============ */
+const REPLIES = {
+  hint: () => (document.querySelector(".quiz.active") ? QUESTIONS[qIndex].hint : "문제를 풀기 시작하면 힌트를 줄 수 있어! 오른쪽 '문제 풀기'의 시작하기를 눌러 봐."),
+  poem: () => "「봄비」는 봄에 내리는 비를 노래한 시야. '보슬보슬'은 비가 가늘고 조용히 내리는 모습을 흉내 내는 말이지!",
+  cheer: () => "말랑이는 할 수 있어! 틀려도 괜찮아, 도전하는 게 제일 멋진 거야!",
+};
+function openChat(open) {
+  $("chatPanel").classList.toggle("open", open);
+  $("tutorBtn")?.setAttribute("aria-expanded", String(open));
+}
+$("tutorBtn").addEventListener("click", () => openChat(!$("chatPanel").classList.contains("open")));
+$("chatOpenBtn").addEventListener("click", () => openChat(true));
+$("startChatBtn").addEventListener("click", () => openChat(true));
+$("charStrip").querySelectorAll(".char-btn").forEach((btn) => {
+  btn.addEventListener("click", () => openChat(true));
+});
+$("chatClose").addEventListener("click", () => openChat(false));
+$("chatChips").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  addMsg(chip.textContent, "me");
+  setTimeout(() => {
+    addMsg(REPLIES[chip.dataset.q](), "bot");
+    mascotJump();
+    completeChatTask();
+  }, 550);
+});
+function addMsg(text, who) {
+  const m = document.createElement("div");
+  m.className = `msg ${who}`;
+  m.textContent = text;
+  $("chatBody").appendChild(m);
+  $("chatBody").scrollTop = $("chatBody").scrollHeight;
+}
+/* AI와 첫 대화를 나누면 과제 3번 완료 */
+function completeChatTask() {
+  if (chatTaskDone) return;
+  chatTaskDone = true;
+  const row = $("taskRow3");
+  row.classList.add("done");
+  row.classList.remove("next");
+  row.querySelector(".t-num").setAttribute("aria-label", "완료됨");
+  $("startChatBtn").outerHTML =
+    `<button class="t-btn replay" id="replay3">이야기 더 하기 <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16"><use href="#ic-play" fill="#7A5200"/></svg></button>`;
+  $("replay3").addEventListener("click", () => openChat(true));
+  doneCount++;
+  updateTaskCount();
+  setXP(xp + 10);
+  showToast("말랑이와 대화 완료! +10 XP");
+}
+
+/* ============ 폭죽 (Canvas) ============ */
+const canvas = $("confettiCanvas");
+const ctx = canvas.getContext("2d");
+let particles = [];
+let confettiRunning = false;
+function sizeCanvas() {
+  canvas.width = innerWidth * devicePixelRatio;
+  canvas.height = innerHeight * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+sizeCanvas();
+addEventListener("resize", sizeCanvas);
+const COLORS = ["#EF4444", "#FACC15", "#3B82F6", "#22C55E", "#A855F7"];
+
+function pickShape() {
+  const r = Math.random();
+  if (r < 0.2) return "star";
+  if (r < 0.45) return "triangle";
+  if (r < 0.6) return "ring";
+  return "rect";
+}
+function makeParticle(x, y, spread, baseAngle = -Math.PI / 2) {
+  const angle = baseAngle + (Math.random() - 0.5) * spread;
+  const speed = 10 + Math.random() * 12;
+  return {
+    x, y,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    size: 10 + Math.random() * 11,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    rot: Math.random() * Math.PI,
+    vr: (Math.random() - 0.5) * 0.3,
+    life: 110 + Math.random() * 60,
+    shape: pickShape(),
+  };
+}
+function burstConfetti(count) {
+  if (reduceMotion) return;
+  const half = Math.round(count / 2);
+  /* 왼쪽 아래 → 오른쪽 위로, 오른쪽 아래 → 왼쪽 위로: 화면 안쪽을 향해 양쪽에서 크고 확실하게 교차 폭발 */
+  for (let i = 0; i < half; i++) particles.push(makeParticle(innerWidth * 0.03, innerHeight * 0.9, 1.3, -Math.PI / 2 + 0.55));
+  for (let i = 0; i < half; i++) particles.push(makeParticle(innerWidth * 0.97, innerHeight * 0.9, 1.3, -Math.PI / 2 - 0.55));
+  runConfetti();
+}
+function rainConfetti() {
+  if (reduceMotion) return;
+  /* 한꺼번에 쏟아지면 뭉쳐 보이므로, 시간차를 두고 조금씩 흩뿌려서 자연스러운 비처럼 내리게 함 */
+  const total = 130;
+  const batches = 22;
+  const perBatch = Math.ceil(total / batches);
+  for (let b = 0; b < batches; b++) {
+    setTimeout(() => {
+      for (let i = 0; i < perBatch; i++) {
+        const p = makeParticle(Math.random() * innerWidth, -20 - Math.random() * 200, 1);
+        p.vy = 1.5 + Math.random() * 4;
+        p.vx = (Math.random() - 0.5) * 3;
+        p.life = 170 + Math.random() * 90;
+        particles.push(p);
+      }
+      runConfetti();
+    }, b * 90);
+  }
+}
+function drawStar(p) {
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+    ctx.lineTo(Math.cos(a) * p.size * 0.7, Math.sin(a) * p.size * 0.7);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+function drawTriangle(p) {
+  const r = p.size * 0.62;
+  ctx.beginPath();
+  for (let i = 0; i < 3; i++) {
+    const a = (i * 2 * Math.PI) / 3 - Math.PI / 2;
+    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+function drawRing(p) {
+  ctx.beginPath();
+  ctx.arc(0, 0, p.size * 0.42, 0, Math.PI * 2);
+  ctx.lineWidth = p.size * 0.22;
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.stroke();
+}
+function runConfetti() {
+  if (confettiRunning) return;
+  confettiRunning = true;
+  (function frame() {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    particles = particles.filter((p) => p.life > 0 && p.y < innerHeight + 40);
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.25; p.vx *= 0.99;
+      p.rot += p.vr; p.life--;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.min(1, p.life / 40);
+      ctx.fillStyle = p.color;
+      if (p.shape === "star") drawStar(p);
+      else if (p.shape === "triangle") drawTriangle(p);
+      else if (p.shape === "ring") drawRing(p);
+      else ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.62);
+      ctx.restore();
+    }
+    if (particles.length) requestAnimationFrame(frame);
+    else { confettiRunning = false; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+  })();
+}
+</script>
+</body>
+</html>
