@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/images/mallang-logo.png" alt="말랑교실 로고" width="420" />
+
 # 말랑교실
 
 > SSAFY A407 팀 프로젝트의 개인 보관용 소스 사본입니다. 원본: https://lab.ssafy.com/s15-webmobile1-sub1/S15P11A407 · 기준 master `dc6dfd86f6b747d4d3d4606a40905aee0e6ea57a`. 팀원 기여와 원본 설명을 유지했습니다.
@@ -9,6 +11,8 @@
 
 
 SSAFY 15기 공통 프로젝트 · A407 · 2026.07.14 ~ 2026.08.10
+
+**🏆 2학기 공통프로젝트 우수상(2등)**
 
 </div>
 
