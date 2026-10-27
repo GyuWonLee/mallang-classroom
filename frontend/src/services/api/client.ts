@@ -1,8 +1,10 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+
 /** 공용 axios 인스턴스 — 모든 REST 호출은 이걸 import해서 사용 */
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: API_BASE_URL,
 })
 
 const ACCESS_TOKEN_KEY = 'accessToken'
@@ -82,7 +84,7 @@ function waitForNewToken(previous: string | null): Promise<string> {
 /** refresh 엔드포인트는 인터셉터를 타지 않도록 raw axios 로 호출 */
 async function callRefresh(refreshToken: string): Promise<string> {
   const { data } = await axios.post<{ accessToken: string; refreshToken?: string }>(
-    `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
+    `${API_BASE_URL}/auth/refresh`,
     { refreshToken },
   )
   setTokens(data.accessToken, data.refreshToken)
