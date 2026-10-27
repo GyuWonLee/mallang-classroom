@@ -4,7 +4,7 @@
   <img src="docs/images/mallang-logo.png" alt="말랑교실 로고" width="360" />
   <h1>말랑교실</h1>
   <h3>여러 학년이 함께 배우는 교실, 한 명 한 명에게 맞춘 배움</h3>
-  <p>초등 복식학급을 위한 <strong>실시간 화상 수업 · AI 학습 지원 서비스</strong></p>
+  <p>한 교실에 두 학년이 앉아 있는 선생님을 위한 초등 실시간 화상 수업 서비스</p>
   <p><strong>🏆 2학기 공통프로젝트 우수상(2등)</strong></p>
   <p>SSAFY 15기 · A407<br />2026.07.14 ~ 2026.08.10</p>
   <img src="docs/images/mallang-character.png" alt="말랑교실 새싹 캐릭터" width="110" />
