@@ -278,17 +278,6 @@
 
 ---
 
-<details>
-<summary><strong>📦 개인 보관용 저장소 안내</strong></summary>
-
-SSAFY A407 팀 프로젝트의 개인 보관용 소스 사본입니다. 팀원 기여와 원본 설명을 유지했습니다.
-
-- 원본: [SSAFY GitLab](https://lab.ssafy.com/s15-webmobile1-sub1/S15P11A407)
-- 기준: master `dc6dfd86f6b747d4d3d4606a40905aee0e6ea57a`
-- 환경설정 및 제외 항목: [개인 저장소 안내](PERSONAL_REPOSITORY.md)
-
-</details>
-
 <br />
 
 <div align="center">
